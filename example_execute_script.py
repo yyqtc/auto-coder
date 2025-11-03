@@ -3,21 +3,18 @@ Python 执行脚本的多种方法示例
 """
 
 import subprocess
-import sys
 import os
 import json
-import getpass
 import shlex
-try:
-    import pexpect
-    PEXPECT_AVAILABLE = True
-except ImportError:
-    PEXPECT_AVAILABLE = False
-    print("提示: 安装 pexpect 可以获得更好的交互式体验: pip install pexpect")
 
 # 使用 with 语句确保文件正确关闭
-with open("./config.json", "r", encoding="utf-8") as f:
-    config = json.load(f)
+config = json.load(open("./config.json", "r", encoding="utf-8"))
+
+def _set_env(key):
+    if not os.environ.get(key):
+        os.environ[key] = config[key]
+
+_set_env("CURSOR_API_KEY")
 
 # 方法1: 使用 subprocess.run() - 推荐方法
 def execute_script_subprocess(script_command, env_vars=None):
@@ -40,7 +37,7 @@ def execute_script_subprocess(script_command, env_vars=None):
             full_command = script_command
         
         result = subprocess.run(
-            ["wsl", "-u", "root", "bash", "-c", full_command],
+            ["bash", "-c", full_command],
             capture_output=True,
             text=True,
             encoding='utf-8',
