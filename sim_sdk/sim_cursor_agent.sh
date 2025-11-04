@@ -4,7 +4,7 @@
 # 用于运行 Cursor CLI SDK 模拟器
 
 # 设置脚本目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="/data/auto_coder/sim_sdk"
 PYTHON_SCRIPT="${SCRIPT_DIR}/sim_sdk.py"
 
 # 颜色输出
