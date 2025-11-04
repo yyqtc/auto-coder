@@ -54,9 +54,14 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
     }
 
 if __name__ == "__main__":
+    # result = asyncio.run(execute_node({
+    #     "input": "测试问题",
+    #     "plan": ["在test目录下的hello.txt里写点废话"]
+    # }))
+
     result = asyncio.run(execute_node({
         "input": "测试问题",
-        "plan": ["在test目录下的hello.txt里写点废话"]
+        "plan": ["在test目录下的hello.txt里为里面的废话写个感受总结"]
     }))
 
     print(result)
