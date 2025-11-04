@@ -116,18 +116,6 @@ def convert_docx_to_markdown(docx_path: str) -> str:
         f.write(_revert_docx_to_md(doc, f"./todo/{docx_name}"))
 
 def convert_pdf_to_markdown(pdf_path: str) -> str:
-    """
-        将pdf文件简单转换为markdown文件，不保留图片和表格
-
-        Args:
-            pdf_name: pdf文件的名称
-
-        Returns:
-            如果转换成功，返回“pdf文件转换为markdown文件成功”
-            如果文件不存在，返回“pdf文件不存在”
-            如果文件不是pdf文件，返回“文件不是pdf文件”
-    """
-
     from PyPDF2 import PdfReader
     
     import os
@@ -147,7 +135,8 @@ def convert_pdf_to_markdown(pdf_path: str) -> str:
                 page = reader.pages[page_num]
                 page_content = page.extract_text()
                 content += page_content + "\n\n"
-                
+        
+        pdf_name = os.path.basename(pdf_path).split(".")[0]
         with open(f"./todo/{pdf_name}/todo.md", "w+", encoding="utf-8") as f:
             f.write(content)
 
