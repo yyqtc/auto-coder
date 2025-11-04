@@ -91,18 +91,6 @@ def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
     return full_text.strip()
 
 def convert_docx_to_markdown(docx_path: str) -> str:
-    """
-        将docx文件转换为markdown文件
-
-        Args:
-            docx_path: docx文件的路径
-
-        Returns:
-            如果转换成功，返回markdown文件的内容
-            如果文件不存在，返回“文件不存在”
-            如果文件不是docx文件，返回“文件不是docx文件”
-    """
-
     if not os.path.exists(docx_path):
         return "文件不存在"
 
