@@ -29,7 +29,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
     """
     try:
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        base_command = f"cd {project_path} && cd /dist/{config['PROJECT_NAME']}"
+        base_command = f"cd {project_path}/dist/{config['PROJECT_NAME']}"
         if env_vars:
             env_exports = ' '.join([f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()])
             full_command = f"{base_command} && {env_exports} && {script_command}"
