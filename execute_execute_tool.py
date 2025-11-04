@@ -72,6 +72,9 @@ def write_code_or_file(prompt: str) -> str:
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
 
+    logger.info("use write_code_or_file tool")
+    logger.info(f"我收到的命令是: {prompt}")
+
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force '{prompt}'", env_vars=env_vars)
     else:
@@ -91,6 +94,8 @@ def mkdir(path: str) -> str:
             如果执行成功，返回创建目录的应答信息
             如果执行失败，返回“执行失败”
     """
+    logger.info("use mkdir tool")
+
     try:
         os.makedirs(f"{project_path}/dist/{config['PROJECT_NAME']}/{path}", exist_ok=True)
         return f"创建目录 {path} 成功"
@@ -110,6 +115,8 @@ def list_files(path: str) -> List[str] | str:
             如果目录不存在，返回“目录不存在”
             如果执行成功，返回文件列表
     """
+    logger.info("use list_files tool")
+
     if not os.path.exists(f"{project_path}/dist/{config['PROJECT_NAME']}/{path}"):
         return "目录不存在"
 
