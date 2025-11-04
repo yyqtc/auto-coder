@@ -1,3 +1,6 @@
 {
-    "CURSOR_API_KEY": "your-api-key"
+    "CURSOR_API_KEY": "your-api-key",
+    "SIM_CURSOR_PATH": "/path-to-sim_sdk.py",
+    "CURSOR_PATH": "/root/.local/bin/cursor-agent"
+
 }
