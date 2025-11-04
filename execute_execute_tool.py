@@ -1,4 +1,5 @@
 from langchain.tools import tool
+from typing import List
 
 import os
 import json
@@ -55,6 +56,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         logger.error(f"详细信息: {e}")
         return "执行失败！"
 
+@tool
 def write_code_or_file(prompt: str) -> str:
     """
         让代码专家根据prompt编写代码或文件
@@ -77,6 +79,42 @@ def write_code_or_file(prompt: str) -> str:
     
     return f"执行结果: {execute_result}"
 
+@tool
+def mkdir(path: str) -> str:
+    """
+        在项目目录下创建指定相对路径的目录的助手
+
+        Args:
+            path: 要创建的目录路径
+
+        Returns:
+            如果执行成功，返回创建目录的应答信息
+            如果执行失败，返回“执行失败”
+    """
+    try:
+        os.makedirs(f"{project_path}/dist/{config['PROJECT_NAME']}/{path}", exist_ok=True)
+        return f"创建目录 {path} 成功"
+    except Exception as e:
+        logger.error(f"创建目录 {path} 失败: {e}")
+        return "执行失败！"
+
+@tool
+def list_files(path: str) -> List[str] | str:
+    """
+        列出项目目录下指定相对路径下的所有文件的助手
+
+        Args:
+            path: 要列出文件的目录的相对路径
+
+        Returns:
+            如果目录不存在，返回“目录不存在”
+            如果执行成功，返回文件列表
+    """
+    if not os.path.exists(f"{project_path}/dist/{config['PROJECT_NAME']}/{path}"):
+        return "目录不存在"
+
+    dir_path = os.path.join(project_path, "dist", config["PROJECT_NAME"], path)
+    return os.listdir(dir_path)
 
 if __name__ == "__main__":
     print(write_code_or_file("请在当前目录下创建一个hello.txt文件"))
