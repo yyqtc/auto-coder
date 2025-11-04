@@ -116,5 +116,7 @@ def list_files(path: str) -> List[str] | str:
     dir_path = os.path.join(project_path, "dist", config["PROJECT_NAME"], path)
     return os.listdir(dir_path)
 
+tools = [write_code_or_file, mkdir, list_files]
+
 if __name__ == "__main__":
     print(write_code_or_file("请在当前目录下创建一个hello.txt文件"))
