@@ -81,7 +81,7 @@ def _init_agent():
         temperature=0.7
     ).with_structured_output(Plan)
 
-    _prompt = ChatPromptTemplate.from_template([
+    _prompt = ChatPromptTemplate.from_messages([
         (
             "system",
             """

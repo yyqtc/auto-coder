@@ -32,7 +32,7 @@ dp_model = ChatOpenAI(
     temperature=0.4
 )
 
-summary_prompt = ChatPromptTemplate.from_template([
+summary_prompt = ChatPromptTemplate.from_messages([
     (
         "system",
         f"""
@@ -47,7 +47,7 @@ summary_prompt = ChatPromptTemplate.from_template([
 
 summary_pro = summary_prompt | qwen_model
 
-markdown_prompt = ChatPromptTemplate.from_template([
+markdown_prompt = ChatPromptTemplate.from_messages([
     (
         "system",
         """
