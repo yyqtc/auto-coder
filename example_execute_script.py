@@ -65,8 +65,9 @@ if __name__ == "__main__":
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
     
-    script_command = "/root/.local/bin/cursor-agent -p '在这个目录下创建一个hello.txt文件'"
-    
+    # script_command = "/root/.local/bin/cursor-agent -p '在这个目录下创建一个hello.txt文件'"
+    script_command = f"python {config['SIM_SDK_PATH']} -p '在这个目录下创建一个hello.txt文件'"
+
     # 方法1: 通过 WSL 执行 shell 脚本（不需要密码的命令）
     print("=" * 50)
     print("方法1: 通过 WSL 执行 shell 脚本（以 root 用户）")
