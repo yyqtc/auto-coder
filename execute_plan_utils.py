@@ -99,6 +99,7 @@ def convert_docx_to_markdown(docx_path: str) -> str:
 
     docx_name = os.path.basename(docx_path).split(".")[0]
     doc = Document(docx_path)
+    os.makedirs(f"./todo/{docx_name}", exist_ok=True)
     os.makedirs(f"./todo/{docx_name}/img", exist_ok=True)
     with open(f"./todo/{docx_name}/todo.md", "w+", encoding="utf-8") as f:
         f.write(_revert_docx_to_md(doc, f"./todo/{docx_name}"))
@@ -125,6 +126,9 @@ def convert_pdf_to_markdown(pdf_path: str) -> str:
                 content += page_content + "\n\n"
                 
         pdf_name = os.path.basename(pdf_path).split(".")[0]
+        if not os.path.exists(f"./todo/{pdf_name}"):
+            os.makedirs(f"./todo/{pdf_name}", exist_ok=True)
+        
         with open(f"./todo/{pdf_name}/todo.md", "w+", encoding="utf-8") as f:
             f.write(content)
 
