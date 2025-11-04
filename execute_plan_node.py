@@ -29,7 +29,7 @@ def check_and_convert_file():
         if file.is_file():
             if file.suffix.lower() == ".docx":
                 try:
-                    convert_docx_to_markdown(file.name)
+                    convert_docx_to_markdown(str(file))
                 except Exception as e:
                     if not len(warning_file):
                         cnt = 0
@@ -47,7 +47,7 @@ def check_and_convert_file():
                         f.write(f"文件无法解析内容，请手动转换成markdown文件: {str(file)}\n\n")
 
             elif file.suffix.lower() == ".pdf":
-                convert_pdf_to_markdown(file.name)
+                convert_pdf_to_markdown(str(file))
 
             else:
                 try:

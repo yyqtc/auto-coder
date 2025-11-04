@@ -90,7 +90,7 @@ def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
 
     return full_text.strip()
 
-def convert_docx_to_markdown(docx_name: str) -> str:
+def convert_docx_to_markdown(docx_path: str) -> str:
     """
         将docx文件转换为markdown文件
 
@@ -103,20 +103,19 @@ def convert_docx_to_markdown(docx_name: str) -> str:
             如果文件不是docx文件，返回“文件不是docx文件”
     """
 
-    docx_path = f"./todo/{docx_name}"
     if not os.path.exists(docx_path):
         return "文件不存在"
 
     if not docx_path.endswith(".docx"):
         return "文件不是docx文件"
 
-    docx_name = os.path.basename(docx_path)
+    docx_name = os.path.basename(docx_path).split(".")[0]
     doc = Document(docx_path)
     os.makedirs(f"./todo/{docx_name}/img", exist_ok=True)
     with open(f"./todo/{docx_name}/todo.md", "w+", encoding="utf-8") as f:
         f.write(_revert_docx_to_md(doc, f"./todo/{docx_name}"))
 
-def convert_pdf_to_markdown(pdf_name: str) -> str:
+def convert_pdf_to_markdown(pdf_path: str) -> str:
     """
         将pdf文件简单转换为markdown文件，不保留图片和表格
 
@@ -132,8 +131,6 @@ def convert_pdf_to_markdown(pdf_name: str) -> str:
     from PyPDF2 import PdfReader
     
     import os
-
-    pdf_path = os.path.join(config["PDF_DIR_PATH"], pdf_name)
 
     if not os.path.exists(pdf_path) or not os.path.isfile(pdf_path):
         return "pdf文件不存在"
