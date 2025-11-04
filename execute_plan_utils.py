@@ -135,7 +135,7 @@ def convert_pdf_to_markdown(pdf_path: str) -> str:
                 page = reader.pages[page_num]
                 page_content = page.extract_text()
                 content += page_content + "\n\n"
-        
+                
         pdf_name = os.path.basename(pdf_path).split(".")[0]
         with open(f"./todo/{pdf_name}/todo.md", "w+", encoding="utf-8") as f:
             f.write(content)
