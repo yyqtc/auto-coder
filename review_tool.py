@@ -1,6 +1,7 @@
 from langchain.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from constants import CODE_EXTENSIONS
 
 import json
 import os
@@ -14,40 +15,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
-# 常见的代码文件扩展名（可根据需要增减）
-CODE_EXTENSIONS = [
-    '.py',      # Python
-    '.js',      # JavaScript
-    '.ts',      # TypeScript
-    '.jsx',     # React JSX
-    '.tsx',     # TypeScript JSX
-    '.java',    # Java
-    '.cpp', '.cc', '.cxx',  # C++
-    '.c',       # C
-    '.h', '.hpp',           # C/C++ 头文件
-    '.cs',      # C#
-    '.go',      # Go
-    '.rs',      # Rust
-    '.rb',      # Ruby
-    '.php',     # PHP
-    '.swift',   # Swift
-    '.kt', '.kts',  # Kotlin
-    '.scala',   # Scala
-    '.sh',      # Shell 脚本
-    '.bash',    # Bash 脚本
-    '.pl',      # Perl
-    '.lua',     # Lua
-    '.sql',     # SQL
-    '.html', '.htm',  # HTML（有时视为代码）
-    '.css',     # CSS
-    '.scss', '.sass',
-    '.less',
-    '.json',    # 配置/数据，但常被当作代码处理
-    '.yaml', '.yml',
-    '.toml',
-    '.xml',
-]
 
 config = json.load(open("./config.json", "r", encoding="utf-8"))
 
@@ -180,7 +147,7 @@ def read_todo_content() -> str:
     if not os.path.exists("./todo/todo.md"):
         return "文件不存在"
     
-    with open("./todo/todo.txt", "r", encoding="utf-8") as f:
+    with open("./todo/todo.md", "r", encoding="utf-8") as f:
         return f.read()
 
 @tool
@@ -206,12 +173,22 @@ def check_project_code() -> str:
     history_path = Path(f"./history/{config["PROJECT_NAME"]}")
     dist_path = Path(f"./dist/{config["PROJECT_NAME"]}")
 
+    skip_dirs = []
+    with open(f".spanignore", "r", encoding="utf-8") as f:
+        skip_dirs = f.read().splitlines()
+
+    skip_dirs = [dir.strip() for dir in skip_dirs if len(dir.strip()) > 0]
+
     history_check_flag = True
     if not history_path.exists():
         history_check_flag = False
 
     content = ""
+
     for file in dist_path.glob("**/*"):
+        if any(part in skip_dirs for part in file.parts):
+            continue
+
         if file.is_file():
             if len(content) > config["SUMMARY_MAX_LENGTH"]:
                 content = summary_pro.invoke(f"当前项目更新日志内容如下所示：\n{content}").content.strip()
@@ -254,6 +231,15 @@ def check_project_code() -> str:
                     content += f"文件{file.name}的内容总结：\n{summary_result}\n\n"
                 except Exception as e:
                     continue
+    
+    for file in history_path.glob("**/*"):
+        if any(part in skip_dirs for part in file.parts):
+            continue
+
+        if file.is_file():
+            dist_path = dist_path / file.name
+            if not dist_path.exists():
+                content += f"文件{file.name}被删除了\n\n"
 
     prompt = f"请根据markdown文档内容{content}，美化markdown文档的结构。"
     md_pretty_content = markdown_pro.invoke(prompt).content.strip()

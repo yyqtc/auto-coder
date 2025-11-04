@@ -57,6 +57,33 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         return "执行失败！"
 
 @tool
+def rm(path: str) -> str:
+    """
+        删除项目目录下指定相对路径的文件或目录的助手
+
+        Args:
+            path: 要删除的文件或目录的相对路径
+
+        Returns:
+            如果执行成功，返回"删除文件成功"
+            如果文件不存在，返回"文件不存在"
+    """
+    import shutil
+
+    logger.info("use rm tool")
+
+    file_or_dir_path = os.path.join(project_path, "dist", config["PROJECT_NAME"], path)
+    if not os.path.exists(file_or_dir_path):
+        return "文件或目录不存在"
+
+    if os.path.isfile(file_or_dir_path):
+        os.remove(file_or_dir_path)
+    elif os.path.isdir(file_or_dir_path):
+        shutil.rmtree(file_or_dir_path)
+
+    return f"删除文件成功"
+
+@tool
 def write_code_or_file(prompt: str) -> str:
     """
         让代码专家根据prompt编写代码或文件
@@ -96,8 +123,9 @@ def mkdir(path: str) -> str:
     """
     logger.info("use mkdir tool")
 
+    dir_path = os.path.join(project_path, "dist", config["PROJECT_NAME"], path)
     try:
-        os.makedirs(f"{project_path}/dist/{config['PROJECT_NAME']}/{path}", exist_ok=True)
+        os.makedirs(dir_path, exist_ok=True)
         return f"创建目录 {path} 成功"
     except Exception as e:
         logger.error(f"创建目录 {path} 失败: {e}")
@@ -123,7 +151,7 @@ def list_files(path: str) -> List[str] | str:
     dir_path = os.path.join(project_path, "dist", config["PROJECT_NAME"], path)
     return os.listdir(dir_path)
 
-tools = [write_code_or_file, mkdir, list_files]
+tools = [write_code_or_file, mkdir, list_files, rm]
 
 if __name__ == "__main__":
     print(write_code_or_file("请在当前目录下创建一个hello.txt文件"))

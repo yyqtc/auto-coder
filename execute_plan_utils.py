@@ -1,0 +1,209 @@
+from docx import Document
+
+import json
+import os
+import logging
+import shlex
+import subprocess
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+config = json.load(open("config.json", 'r', encoding="utf-8"))
+
+project_path = os.path.abspath(os.path.dirname(__file__))
+
+def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
+    image_map = {}
+    image_count = 0
+
+    for rel in doc.part.rels.values():
+        if 'image' in rel.reltype:
+            image_count += 1
+            image_data = rel.target_part.blob
+            ext = rel.target_part.partname.split("/")[-1].split(".")[-1].lower()
+            if ext not in ["png", "jpg", "jpeg", "gif", "bmp", "webp"]:
+                ext = "jpg"
+            
+            image_name = f"img_{image_count}.{ext}"
+            image_path = os.path.join(config["MD_DIR_PATH"], md_project_name, "img", image_name)
+            with open(image_path, "wb") as f:
+                f.write(image_data)
+            image_map[rel.rId] = f'./img/{image_name}'
+
+    image_count = 0
+    full_text = ""
+
+    parent = doc.element.body if hasattr(doc, 'element') else doc
+    markdown_struct = []
+    for child in parent.getchildren():
+        if child.tag.endswith("}p"):
+            markdown_struct.append("p")
+        elif child.tag.endswith("}tbl"):
+            markdown_struct.append("tb")
+
+    tables = []
+    for table in doc.tables:
+        rows = []
+        for row in table.rows:
+            cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
+            rows.append("| " + " | ".join(cells) + " |")
+        
+        if len(rows) > 1:
+            sep = "|" + "|".join([" --- "] * len(table.columns)) + "|"
+            rows.insert(1, sep)
+        tables.append("\n".join(rows))
+
+    paras = []
+    for para in doc.paragraphs:
+        para_content = ""
+        for run in para.runs:
+            for child in run._element.getchildren():
+                if child.tag.endswith("}drawing") or child.tag.endswith("}pict"):
+                    blips = child.xpath(".//*[local-name()='blip']")
+                    
+                    if blips:
+                        rId = blips[0].get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed')
+                        if rId:
+                            if rId in [r.rId for r in doc.part.rels.values()]:
+                                image_count += 1
+                                image_path = image_map.get(rId, f"img_{image_count}.jpg")
+                                para_content += f"\n\n![图片{image_count}]({image_path})\n\n"
+
+                elif child.tag.endswith("}t"):
+                    text = child.text or ""
+                    para_content += text
+    
+        paras.append(para_content)
+
+    for item in markdown_struct:
+        if item == "p":
+            full_text += paras.pop(0) + "\n\n"
+        elif item == "tb":
+            full_text += tables.pop(0) + "\n\n"
+
+    return full_text.strip()
+
+def convert_docx_to_markdown(docx_name: str) -> str:
+    """
+        将docx文件转换为markdown文件
+
+        Args:
+            docx_path: docx文件的路径
+
+        Returns:
+            如果转换成功，返回markdown文件的内容
+            如果文件不存在，返回“文件不存在”
+            如果文件不是docx文件，返回“文件不是docx文件”
+    """
+
+    docx_path = f"./todo/{docx_name}"
+    if not os.path.exists(docx_path):
+        return "文件不存在"
+
+    if not docx_path.endswith(".docx"):
+        return "文件不是docx文件"
+
+    docx_name = os.path.basename(docx_path)
+    doc = Document(docx_path)
+    os.makedirs(f"./todo/{docx_name}/img", exist_ok=True)
+    with open(f"./todo/{docx_name}/todo.md", "w+", encoding="utf-8") as f:
+        f.write(_revert_docx_to_md(doc, f"./todo/{docx_name}"))
+
+def convert_pdf_to_markdown(pdf_name: str) -> str:
+    """
+        将pdf文件简单转换为markdown文件，不保留图片和表格
+
+        Args:
+            pdf_name: pdf文件的名称
+
+        Returns:
+            如果转换成功，返回“pdf文件转换为markdown文件成功”
+            如果文件不存在，返回“pdf文件不存在”
+            如果文件不是pdf文件，返回“文件不是pdf文件”
+    """
+
+    from PyPDF2 import PdfReader
+    
+    import os
+
+    pdf_path = os.path.join(config["PDF_DIR_PATH"], pdf_name)
+
+    if not os.path.exists(pdf_path) or not os.path.isfile(pdf_path):
+        return "pdf文件不存在"
+    elif not pdf_path.endswith(".pdf"):
+        return "文件不是pdf文件"
+    else:
+        with open(pdf_path, "rb") as f:
+            reader = PdfReader(f)
+            content = ""
+            skipped_content_len = 0
+            
+            # 读取所有页面内容
+            for page_num in range(len(reader.pages)):
+                page = reader.pages[page_num]
+                page_content = page.extract_text()
+                content += page_content + "\n\n"
+                
+        with open(f"./todo/{pdf_name}/todo.md", "w+", encoding="utf-8") as f:
+            f.write(content)
+
+    return "pdf文件转换为markdown文件成功"
+
+def _execute_script_subprocess(script_command, env_vars=None) -> str:
+    """
+    使用 subprocess 模块执行脚本（推荐）
+    
+    Args:
+        script_command: 要执行的命令字符串
+        env_vars: 要传递的环境变量字典，例如 {"CURSOR_API_KEY": "..."}
+    """
+    try:
+        # 如果需要在命令前设置环境变量，可以在命令中导出
+        base_command = f"cd {project_path}/todo"
+        if env_vars:
+            env_exports = ' '.join([f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()])
+            full_command = f"{base_command} && {env_exports} && {script_command}"
+        else:
+            full_command = f"{base_command} && {script_command}"
+        
+        result = subprocess.run(
+            ["bash", "-c", full_command],
+            capture_output=True,
+            text=True,
+            encoding='utf-8',
+            errors='replace',  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
+            check=True
+        )
+        logger.info("执行成功！")
+        logger.info(f"输出: {result.stdout}")
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        logger.error("执行失败！")
+        logger.error(f"错误: {e.stderr}")
+        return "执行失败！"
+    except Exception as e:
+        logger.error(f"详细信息: {e}")
+        return "执行失败！"
+
+def analyze_what_to_do():
+    env_vars = {
+        "CURSOR_API_KEY": config["CURSOR_API_KEY"]
+    }
+
+    prompt = "根据本目录下所有文件，分析总结本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
+    if os.path.exists(f"./dist/{config['PROJECT_NAME']}/summary.md"):
+        with open(f"./dist/{config['PROJECT_NAME']}/summary.md", "r", encoding="utf-8") as f:
+            summary_content = f.read()
+        prompt = f"请结合项目总结日志内容, 项目总结日志内容如下：\n{summary_content}\n\n根据本目录下所有文件，分析总结本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
+
+    if config["MOCK"]:
+        return _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)
+    else:
+        return _execute_script_subprocess(f"{config['CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)
