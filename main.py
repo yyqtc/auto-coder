@@ -50,7 +50,7 @@ async def main():
     recursion_limit = config.get("RECURSION_LIMIT", 50)
     result = await app.ainvoke({
         "count": 0,
-        config: {
+        "config": {
             "recursion_limit": recursion_limit
         }
     })

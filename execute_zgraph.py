@@ -62,7 +62,7 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
 
     await app.ainvoke({
         "input": f"开发轮数：{count}",
-        config: {
+        "config": {
             "recursion_limit": recursion_limit
         }
     })
