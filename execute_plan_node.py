@@ -130,7 +130,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
             if user_input == "pass":
                 break
 
-    summary_file = f"./todo/todo.md"
+    summary_file = f"./todo/summary.md"
     if os.path.exists(summary_file):
         cnt = 0
         while os.path.exists(f"./todo/summary_{cnt}.md"):
