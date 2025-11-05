@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 config = json.load(open("config.json", encoding="utf-8"))
 
 _model = ChatOpenAI(
-    model="qwen-plus",
+    model="qwen-max",
     openai_api_key=config["QWEN_API_KEY"],
     openai_api_base=config["QWEN_API_BASE"],
     temperature=0.7
