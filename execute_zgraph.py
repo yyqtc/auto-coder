@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-config = json.load(open("config.json", "r", encoding="utf-8"))
+config = json.load(open("./config.json", "r", encoding="utf-8"))
 
 def _should_end(state: PlanExecute):
     if "response" in state and state["response"]:
@@ -60,6 +60,7 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
     app = _init_graph()
 
     recursion_limit = config.get("RECURSION_LIMIT", 50)
+    logger.info(f"迭代次数：{recursion_limit}")
 
     await app.ainvoke({
         "input": f"开发轮数：{count}",
