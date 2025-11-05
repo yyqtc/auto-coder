@@ -107,7 +107,7 @@ def write_opinion_file(content: str) -> str:
         返回字符串“文件写入成功”
     """
     logger.info("use write_opinion_file tool")
-    with open(f"./opinion/{config['PROJECT_NAME']}.txt", "w+", encoding="utf-8") as f:
+    with open(f"./opinion/{config['PROJECT_NAME']}.md", "w+", encoding="utf-8") as f:
         f.write(content)
 
     return "文件写入成功"
@@ -125,10 +125,10 @@ def read_opinion_file() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_opinion_file tool")
-    if not os.path.exists(f"./opinion/{config['PROJECT_NAME']}.txt"):
+    if not os.path.exists(f"./opinion/{config['PROJECT_NAME']}.md"):
         return "文件不存在"
     
-    with open(f"./opinion/{config['PROJECT_NAME']}.txt", "r", encoding="utf-8") as f:
+    with open(f"./opinion/{config['PROJECT_NAME']}.md", "r", encoding="utf-8") as f:
         return f.read()
 
 @tool

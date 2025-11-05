@@ -188,7 +188,7 @@ def analyze_what_to_do(count=0):
 
     if count > 0:
         opinion = ""
-        opinion_file = f"./opinion/{config['PROJECT_NAME']}.txt"
+        opinion_file = f"./opinion/{config['PROJECT_NAME']}.md"
         if os.path.exists(opinion_file):
             with open(opinion_file, "r", encoding="utf-8") as f:
                 opinion = f.read()
