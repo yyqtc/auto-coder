@@ -154,10 +154,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
 
         todo_list_file = f"./todo/{config['PROJECT_NAME']}/todo_list.md"
         if os.path.exists(todo_list_file):
-            cnt = 1
-            while os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list_{cnt}.md"):
-                cnt += 1
-            shutil.move(todo_list_file, f"./todo/{config['PROJECT_NAME']}/todo_list_{cnt}.md")
+            os.remove(todo_list_file)
 
     result = analyze_what_to_do(count)
     if result == "执行失败！" or result == "分析失败！":
