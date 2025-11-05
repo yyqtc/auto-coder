@@ -183,7 +183,11 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
         with open(f"./todo/todo_list.md", "w+", encoding="utf-8") as f:
             f.write(steps_content)
 
-        user_check_opnion = input(f"请检查执行计划，执行计划内容详见./todo/todo_list.md。如果你认为没有必要继续修改，请输入“pass”。如果你认为有必要继续修改，请输入“reject”：")
+        while True:
+            user_check_opnion = input(f"请检查执行计划，执行计划内容详见./todo/todo_list.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
+            if user_check_opnion == "pass" or user_check_opnion == "reject":
+                break
+        
         if user_check_opnion == "pass":
             with open(f"./todo/todo_list.md", "r", encoding="utf-8") as f:
                 temp_todo_list = f.read().splitlines()
