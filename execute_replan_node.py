@@ -110,7 +110,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         "past_steps": past_steps_content
     })
 
-    logger.info(f"重新规划结果: {result}")
+    logger.info("分析和重新规划结束")
 
     if isinstance(result.action, Response):
         return {
