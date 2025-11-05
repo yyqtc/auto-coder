@@ -65,8 +65,9 @@ _prompt = ChatPromptTemplate.from_messages([
         3. 我们的预算非常有限！因此你必须保证你列出来的任务是和用户需求相关的！不要反复的创建删除同一个文件或目录！
         4. 确保计划中的每一步都能够得到所有需要的信息！
         5. 确保计划的最后一步完成后用户能够得到一个完整可运行的项目！
-        6. 计划请以JSON格式输出，包含action字段，action字段应该包含steps字段，steps字段类型List[str]！
-        7. 答案请以JSON格式输出，包含action字段，action字段应该包含response字段，response字段类型str！
+        6. 如果你认为需要修正计划，请直接返回计划列表，不要返回答案！
+        7. 计划请以JSON格式输出，包含action字段，action字段应该包含steps字段，steps字段类型List[str]！
+        8. 答案请以JSON格式输出，包含action字段，action字段应该包含response字段，response字段类型str！
         """
     )
 ])
