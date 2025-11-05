@@ -1,6 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from execute_custom_type import Plan, Response, Act, PlanExecute
+from execute_replan_utils import analyze_what_to_do
 from constants import REQUIREMENT_READ_FAIL_MESSAGE, UNKNOWN_ERROR_MESSAGE
 
 import json
@@ -48,14 +49,14 @@ _prompt = ChatPromptTemplate.from_messages([
         我们的客户的需求是：
         {todo}
 
-
         我们最近一次计划是：
         {plan}
-
 
         我们已经完成了以下步骤并取得了一些成果：
         {past_steps}
 
+        你的检查项目实际状况的助手告诉给你的项目实际状况是：
+        {project_status}
 
         根据以上信息分析是否需要继续执行计划，如果你认为不需要则直接输出“开发完成”，否则你需要检查计划是否需要修正，如果需要修正则输出修正后的计划，否则输出原计划。
             
@@ -105,11 +106,23 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         past_steps_content = summary_pro.invoke(f"请总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}").content.strip()
 
     logger.info(f"开发成果: \n{past_steps_content}")
+    
+    analysis_count = 0
+    project_status = ""
+    while analysis_count < 3:
+        project_status = analyze_what_to_do(count=0, past_steps_content=past_steps_content, todo=todo, plan=plan)
+        if project_status != "分析失败！" and project_status != "执行失败！":
+            break
+
+        analysis_count += 1
+    
+    logger.info(f"项目实际状况: \n{project_status}")
 
     result = await agent.ainvoke({
         "todo": todo,
         "plan": plan,
-        "past_steps": past_steps_content
+        "past_steps": past_steps_content,
+        "project_status": project_status
     })
 
     logger.info("分析和重新规划结束")
