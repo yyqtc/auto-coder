@@ -183,8 +183,10 @@ def analyze_what_to_do(count=0):
 
     if count > 0:
         opinion = ""
-        with open(f"./opnion/opinion.txt", "r", encoding="utf-8") as f:
-            opinion = f.read()
+        opinion_file = f"./opnion/{config['PROJECT_NAME']}.txt"
+        if os.path.exists(opinion_file):
+            with open(opinion_file, "r", encoding="utf-8") as f:
+                opinion = f.read()
 
         if len(opinion) > 0:
             prompt += f"""

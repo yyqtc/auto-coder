@@ -87,10 +87,15 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             "response": REQUIREMENT_READ_FAIL_MESSAGE
         }
 
-    plan = state["plan"]
+    plan = state.get("plan", [])
+    if not len(plan):
+        logger.error("计划列表为空")
+        return {
+            "response": "计划列表为空，无法重新规划"
+        }
     plan = "\n".join(plan)
     
-    past_steps = state["past_steps"]
+    past_steps = state.get("past_steps", [])
     past_steps_content = ""
     for past_step in past_steps:
         step, response = past_step

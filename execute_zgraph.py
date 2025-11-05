@@ -56,7 +56,7 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
     logger.info("正在创建模拟sdk的文件...")
 
     await app.ainvoke({
-        "input": f"开发轮数：{state['count']}"
+        "input": f"开发轮数：{count}"
     })
 
     return {

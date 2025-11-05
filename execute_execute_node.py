@@ -50,6 +50,12 @@ def _init_agent():
 async def execute_node(state: PlanExecute) -> PlanExecute:
     agent = _init_agent()
 
+    if not state.get("plan") or len(state["plan"]) == 0:
+        logger.error("计划列表为空，无法执行任务")
+        return {
+            "response": "计划列表为空，无法执行任务"
+        }
+
     task = state["plan"].pop(0)
     logger.info(f"开发团队正在完成任务：{task}...")
     formatted_task = f"""

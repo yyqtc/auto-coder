@@ -37,10 +37,9 @@ async def counter_node(state: ActionReview) -> ActionReview:
     if count != 0:
         check_input = ""
         while check_input != "pass" and check_input != "reject":
-            check_input = input(f"请检查审核意见->./opnion/opinion.txt。如果你认为没有必要继续修改，请输入“pass”。如果你认为有必要继续修改，请输入“reject”：")
+            check_input = input(f"请检查审核意见->./opnion/{config['PROJECT_NAME']}.txt。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
         
         if check_input == "pass":
-
             return {
                 "response": "pass"
             }

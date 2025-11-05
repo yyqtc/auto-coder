@@ -67,9 +67,18 @@ async def review_node(state: ActionReview) -> ActionReview:
         })
 
         response = response.get("structured_response", None)
+        
         if response is None:
-            print("retry review_node")
-            return await review_node(state)
+            logger.warning("retry review_node - structured_response is None")
+            # 避免无限递归，最多重试3次
+            retry_count = state.get("_retry_count", 0)
+            if retry_count >= 3:
+                logger.error("review_node 重试次数过多，返回错误响应")
+                return {
+                    "response": "审核失败：无法获取结构化响应"
+                }
+            new_state = {**state, "_retry_count": retry_count + 1}
+            return await review_node(new_state)
 
         if isinstance(response.action, Action):
             return {
@@ -79,6 +88,11 @@ async def review_node(state: ActionReview) -> ActionReview:
         elif isinstance(response.action, Response):
             return {
                 "response": response.action.response
+            }
+        else:
+            logger.error(f"未知的action类型: {type(response.action)}")
+            return {
+                "response": "审核失败：未知的响应类型"
             }
 
     else:
@@ -101,8 +115,16 @@ async def review_node(state: ActionReview) -> ActionReview:
 
         response = response.get("structured_response", None)
         if response is None:
-            print("retry review_node")
-            return await review_node(state)
+            logger.warning("retry review_node - structured_response is None")
+            # 避免无限递归，最多重试3次
+            retry_count = state.get("_retry_count", 0)
+            if retry_count >= 3:
+                logger.error("review_node 重试次数过多，返回错误响应")
+                return {
+                    "response": "审核失败：无法获取结构化响应"
+                }
+            new_state = {**state, "_retry_count": retry_count + 1}
+            return await review_node(new_state)
         
         if isinstance(response.action, Action):
             return {
@@ -112,5 +134,10 @@ async def review_node(state: ActionReview) -> ActionReview:
         elif isinstance(response.action, Response):
             return {
                 "response": response.action.response
+            }
+        else:
+            logger.error(f"未知的action类型: {type(response.action)}")
+            return {
+                "response": "审核失败：未知的响应类型"
             }
     

@@ -115,7 +115,13 @@ agent = _init_agent()
 async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     os.makedirs(f"./dist/{config['PROJECT_NAME']}", exist_ok=True)
 
-    count = int(state["input"].split("：")[1])
+    try:
+        count = int(state["input"].split("：")[1])
+    except (IndexError, ValueError) as e:
+        logger.info(f"解析input失败: {state.get('input', '')}, 错误: {e}")
+        return {
+            "response": "输入格式错误，无法解析开发轮数"
+        }
 
     logger.info(f"进行第{count}轮需求分析-开发工作")
 
