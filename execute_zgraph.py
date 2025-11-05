@@ -6,6 +6,7 @@ from execute_replan_node import execute_replan_node
 from execute_execute_node import execute_node
 
 import asyncio
+import json
 import logging
 
 logging.basicConfig(
@@ -16,6 +17,8 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+config = json.load(open("config.json", "r", encoding="utf-8"))
 
 def _should_end(state: PlanExecute):
     if "response" in state and state["response"]:
@@ -42,7 +45,8 @@ def _init_graph():
         ["execute_execute", END]
     )
     
-    app = workflow.compile()
+    recursion_limit = config.get("RECURSION_LIMIT", 50)
+    app = workflow.compile(recursion_limit=recursion_limit)
 
     return app
 

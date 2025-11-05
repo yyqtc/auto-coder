@@ -34,7 +34,8 @@ def _init_graph():
     workflow.add_edge("execute_graph", "review")
     workflow.add_edge("review", "counter")
 
-    app = workflow.compile()
+    recursion_limit = config.get("RECURSION_LIMIT", 50)
+    app = workflow.compile(recursion_limit=recursion_limit)
 
     return app
 
