@@ -53,7 +53,7 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
     if "count" in state:
         count = state["count"]
 
-    logger.info("正在创建模拟sdk的文件...")
+    logger.info("正在开发项目...")
 
     await app.ainvoke({
         "input": f"开发轮数：{count}"
