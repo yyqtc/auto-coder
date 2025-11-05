@@ -88,11 +88,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         }
 
     plan = state.get("plan", [])
-    if not len(plan):
-        logger.error("计划列表为空")
-        return {
-            "response": "计划列表为空，无法重新规划"
-        }
+
     plan = "\n".join(plan)
     
     past_steps = state.get("past_steps", [])
@@ -104,11 +100,15 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
         past_steps_content = summary_pro.invoke(f"请总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}").content.strip()
 
+    logger.info(f"开发成果: {todo}")
+
     result = await agent.ainvoke({
         "todo": todo,
         "plan": plan,
         "past_steps": past_steps_content
     })
+
+    logger.info(f"重新规划结果: {result}")
 
     if isinstance(result.action, Response):
         return {
