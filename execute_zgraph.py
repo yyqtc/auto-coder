@@ -49,14 +49,15 @@ def _init_graph():
 
     return app
 
-app = _init_graph()
-
 async def execute_zgraph(state: ActionReview) -> ActionReview:
     count = 0
     if "count" in state:
         count = state["count"]
 
     logger.info("正在开发项目...")
+
+    # 每次调用时重建图，避免recursion_limit累计
+    app = _init_graph()
 
     recursion_limit = config.get("RECURSION_LIMIT", 50)
 
