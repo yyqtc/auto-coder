@@ -175,7 +175,7 @@ def analyze_what_to_do(count=0):
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
 
-    prompt = "根据本目录下所有文件，分析总结本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
+    prompt = "根据本目录下所有文档，分析总结本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
     if os.path.exists(f"./dist/{config['PROJECT_NAME']}/summary.md"):
         with open(f"./dist/{config['PROJECT_NAME']}/summary.md", "r", encoding="utf-8") as f:
             summary_content = f.read()
@@ -185,7 +185,7 @@ def analyze_what_to_do(count=0):
         opinion = ""
         with open(f"./opnion/opinion.txt", "r", encoding="utf-8") as f:
             opinion = f.read()
-            
+
         if len(opinion) > 0:
             prompt += f"""
 
