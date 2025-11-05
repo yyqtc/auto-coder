@@ -50,9 +50,8 @@ async def main():
     recursion_limit = config.get("RECURSION_LIMIT", 50)
     result = await app.ainvoke({
         "count": 0,
-        "config": {
-            "recursion_limit": recursion_limit
-        }
+    }, {
+        "recursion_limit": recursion_limit
     })
 
     print("result: ", result.get("response", "响应为空"))
