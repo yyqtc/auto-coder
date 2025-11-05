@@ -4,6 +4,16 @@ from execute_custom_type import Plan, Response, Act, PlanExecute
 from constants import REQUIREMENT_READ_FAIL_MESSAGE, UNKNOWN_ERROR_MESSAGE
 
 import json
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 config = json.load(open("config.json", encoding="utf-8"))
 
@@ -64,6 +74,8 @@ agent = _prompt | _model.with_structured_output(Act)
 
 
 async def execute_replan_node(state: PlanExecute) -> PlanExecute:
+    logger.info("正在根据当前开发结果调整计划...")
+
     todo = ""
     try:
         with open(f"./todo/todo.md", "r", encoding="utf-8") as f:

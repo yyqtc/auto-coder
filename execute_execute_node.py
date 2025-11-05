@@ -5,6 +5,16 @@ from langchain.agents import create_agent
 
 import json
 import asyncio
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 config = json.load(open("config.json", encoding="utf-8"))
 
@@ -41,7 +51,7 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
     agent = _init_agent()
 
     task = state["plan"].pop(0)
-    print("task：", task, "\n")
+    logger.info(f"开发团队正在完成任务：{task}...")
     formatted_task = f"""
     完成这个任务：{task}。不要做和{task}无关的内容。
     """

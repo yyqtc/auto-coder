@@ -10,6 +10,16 @@ import os
 import json
 import shutil
 import asyncio
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 config = json.load(open("config.json", "r", encoding="utf-8"))
 
@@ -106,6 +116,8 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     os.makedirs(f"./dist/{config['PROJECT_NAME']}", exist_ok=True)
 
     count = int(state["input"].split("：")[1])
+
+    logger.info(f"进行第{count}轮需求分析-开发工作")
 
     warning_file = check_and_convert_file()
 
