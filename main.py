@@ -18,17 +18,17 @@ def _should_end(state: ActionReview):
     if "response" in state and len(state["response"]) > 0:
         return END
     else:
-        return "execute"
+        return "execute_graph"
 
 def _init_graph():
     workflow = StateGraph[ActionReview, None, ActionReview, ActionReview](ActionReview)
     workflow.add_node("counter", counter_node)
     workflow.add_node("review", review_node)
-    workflow.add_node("execute", execute_zgraph)
+    workflow.add_node("execute_graph", execute_zgraph)
 
     workflow.add_edge(START, "counter")
-    workflow.add_conditional_edges("counter", _should_end, ["execute", END])
-    workflow.add_edge("execute", "review")
+    workflow.add_conditional_edges("counter", _should_end, ["execute_graph", END])
+    workflow.add_edge("execute_graph", "review")
     workflow.add_edge("review", "counter")
 
     app = workflow.compile()
