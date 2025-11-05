@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-async def counter_node(state: ActionReview) -> ActionReview | END:
+async def counter_node(state: ActionReview) -> ActionReview:
     count = 0
     if "count" in state:
         count = state["count"]
