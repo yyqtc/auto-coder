@@ -46,7 +46,7 @@ async def counter_node(state: ActionReview) -> ActionReview:
             }
 
     if os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
-        shutil.copy(f"./dist/{config['PROJECT_NAME']}", f"./history/{config['PROJECT_NAME']}")
+        shutil.copytree(f"./dist/{config['PROJECT_NAME']}", f"./history/{config['PROJECT_NAME']}")
 
     return {
         "count": count
