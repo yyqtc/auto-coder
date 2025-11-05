@@ -48,8 +48,12 @@ async def main():
         print("项目需求不存在")
         return 
 
+    recursion_limit = config.get("RECURSION_LIMIT", 50)
     result = await app.ainvoke({
-        "count": 0
+        "count": 0,
+        config: {
+            "recursion_limit": recursion_limit
+        }
     })
 
     print("result: ", result.get("response", "响应为空"))

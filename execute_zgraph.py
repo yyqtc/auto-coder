@@ -45,8 +45,7 @@ def _init_graph():
         ["execute_execute", END]
     )
     
-    recursion_limit = config.get("RECURSION_LIMIT", 50)
-    app = workflow.compile(recursion_limit=recursion_limit)
+    app = workflow.compile()
 
     return app
 
@@ -59,8 +58,13 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
 
     logger.info("正在开发项目...")
 
+    recursion_limit = config.get("RECURSION_LIMIT", 50)
+
     await app.ainvoke({
-        "input": f"开发轮数：{count}"
+        "input": f"开发轮数：{count}",
+        config: {
+            "recursion_limit": recursion_limit
+        }
     })
 
     return {
