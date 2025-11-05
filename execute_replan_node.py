@@ -102,7 +102,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
         past_steps_content = summary_pro.invoke(f"请总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}").content.strip()
 
-    logger.info(f"开发成果: {todo}")
+    logger.info(f"开发成果: \n{past_steps_content}")
 
     result = await agent.ainvoke({
         "todo": todo,
