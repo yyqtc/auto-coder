@@ -25,7 +25,7 @@ async def counter_node(state: ActionReview) -> ActionReview | END:
     
     logger.info(f"counter_node count: {count}")
 
-    if os.path.exists(f"./dist/{config["PROJECT_NAME"]}"):
+    if os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
         summarize_project()
     
     if "response" in state and len(state["response"]) > 0:
@@ -45,8 +45,8 @@ async def counter_node(state: ActionReview) -> ActionReview | END:
                 "response": "pass"
             }
 
-    if os.path.exists(f"./dist/{config["PROJECT_NAME"]}"):
-        shutil.copy(f"./dist/{config["PROJECT_NAME"]}", f"./history/{config["PROJECT_NAME"]}")
+    if os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
+        shutil.copy(f"./dist/{config['PROJECT_NAME']}", f"./history/{config['PROJECT_NAME']}")
 
     return {
         "count": count

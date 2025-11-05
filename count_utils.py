@@ -68,10 +68,10 @@ markdown_prompt = ChatPromptTemplate.from_messages([
 markdown_pro = markdown_prompt | dp_model
 
 def summarize_project() -> str:
-    if not os.path.exists(f"./dist/{config["PROJECT_NAME"]}"):
+    if not os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
         return "项目不存在"
     
-    dist_path = Path(f"./dist/{config["PROJECT_NAME"]}")
+    dist_path = Path(f"./dist/{config['PROJECT_NAME']}")
 
     skip_dirs = []
     with open(f".spanignore", "r", encoding="utf-8") as f:
@@ -103,7 +103,7 @@ def summarize_project() -> str:
     if md_pretty_content.endswith("```"):
         md_pretty_content = md_pretty_content.replace("```", "")
 
-    with open(f"./dist/{config["PROJECT_NAME"]}/summary.md", "w+", encoding="utf-8") as f:
+    with open(f"./dist/{config['PROJECT_NAME']}/summary.md", "w+", encoding="utf-8") as f:
         f.write(md_pretty_content)
 
     return md_pretty_content

@@ -107,7 +107,7 @@ def write_opinion_file(content: str) -> str:
         返回字符串“文件写入成功”
     """
     logger.info("use write_opinion_file tool")
-    with open(f"./opnion/{config["PROJECT_NAME"]}.txt", "w+", encoding="utf-8") as f:
+    with open(f"./opnion/{config['PROJECT_NAME']}.txt", "w+", encoding="utf-8") as f:
         f.write(content)
 
     return "文件写入成功"
@@ -125,10 +125,10 @@ def read_opinion_file() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_opinion_file tool")
-    if not os.path.exists(f"./opnion/{config["PROJECT_NAME"]}.txt"):
+    if not os.path.exists(f"./opnion/{config['PROJECT_NAME']}.txt"):
         return "文件不存在"
     
-    with open(f"./opnion/{config["PROJECT_NAME"]}.txt", "r", encoding="utf-8") as f:
+    with open(f"./opnion/{config['PROJECT_NAME']}.txt", "r", encoding="utf-8") as f:
         return f.read()
 
 @tool
@@ -163,15 +163,15 @@ def check_project_code() -> str:
         如果项目存在，返回项目当前的做了哪些修改，判断项目的代码是否存在语法错误或逻辑错误。
     """
     logger.info("use check_project_code tool")
-    if not os.path.exists(f"./dist/{config["PROJECT_NAME"]}"):
+    if not os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
         return "项目不存在"
     
     from pathlib import Path
     import filecmp
     import difflib
 
-    history_path = Path(f"./history/{config["PROJECT_NAME"]}")
-    dist_path = Path(f"./dist/{config["PROJECT_NAME"]}")
+    history_path = Path(f"./history/{config['PROJECT_NAME']}")
+    dist_path = Path(f"./dist/{config['PROJECT_NAME']}")
 
     skip_dirs = []
     with open(f".spanignore", "r", encoding="utf-8") as f:
@@ -198,7 +198,7 @@ def check_project_code() -> str:
                 if not filecmp.cmp(file, history_file, shallow=False):
                     content += f"文件{file.name}没有发生变化\n\n"
 
-                elif file.name.suffix.lower() in CODE_EXTENSIONS:
+                elif file.suffix.lower() in CODE_EXTENSIONS:
                     file_content = file.read_text(encoding="utf-8")
                     diff_result = code_pro.invoke(f"请总结代码的功能,代码内容如下所示：\n{file_content}").content.strip()
                     content += f"修改后文件{file.name}实现的功能：\n{diff_result}\n\n"
@@ -211,8 +211,8 @@ def check_project_code() -> str:
                         file_content = file_content.splitlines()
                         diff_result = difflib.unified_diff(
                             history_file_content, file_content,
-                            fromfile=f"history/{config["PROJECT_NAME"]}/{file.name}",
-                            tofile=f"dist/{config["PROJECT_NAME"]}/{file.name}",
+                            fromfile=f"history/{config['PROJECT_NAME']}/{file.name}",
+                            tofile=f"dist/{config['PROJECT_NAME']}/{file.name}",
                             lineterm=''
                         )
                         diff_result = "\n".join(diff_result)
@@ -220,7 +220,7 @@ def check_project_code() -> str:
 
                     except Exception as e:
                         continue
-            elif file.name.suffix.lower() in CODE_EXTENSIONS:
+            elif file.suffix.lower() in CODE_EXTENSIONS:
                 file_content = file.read_text(encoding="utf-8")
                 diff_result = code_pro.invoke(f"请总结代码的功能,代码内容如下所示：\n{file_content}").content.strip()
                 content += f"新建文件{file.name}实现的功能：\n{diff_result}\n\n"
@@ -248,7 +248,7 @@ def check_project_code() -> str:
     if md_pretty_content.endswith("```"):
         md_pretty_content = md_pretty_content.replace("```", "")
 
-    with open(f"./dist/{config["PROJECT_NAME"]}/summary.md", "w+", encoding="utf-8") as f:
+    with open(f"./dist/{config['PROJECT_NAME']}/summary.md", "w+", encoding="utf-8") as f:
         f.write(md_pretty_content)
 
     return md_pretty_content

@@ -32,13 +32,13 @@ def _init_graph():
     workflow.add_edge(START, "execute_plan")
     workflow.add_conditional_edges(
         "execute_plan", 
-        _should_end
+        _should_end,
         ["execute", END]
     )
     workflow.add_edge("execute_execute", "execute_replan")
     workflow.add_conditional_edges(
         "execute_replan",
-        _should_end
+        _should_end,
         ["execute", END]
     )
     
