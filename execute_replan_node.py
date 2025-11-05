@@ -5,6 +5,7 @@ from constants import REQUIREMENT_READ_FAIL_MESSAGE, UNKNOWN_ERROR_MESSAGE
 
 import json
 import logging
+import asyncio
 
 logging.basicConfig(
     level=logging.INFO,
@@ -122,3 +123,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         return {
             "response": UNKNOWN_ERROR_MESSAGE
         }
+
+if __name__ == "__main__":
+    asyncio.run(execute_replan_node({
+        "plan": ["创建一个Hello World程序"],
+        "past_steps": [("创建一个Hello World程序", "Hello World程序创建成功")]
+    }))

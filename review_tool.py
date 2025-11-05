@@ -241,7 +241,9 @@ def check_project_code() -> str:
             if not dist_path.exists():
                 content += f"文件{file.name}被删除了\n\n"
 
-    prompt = f"请根据markdown文档内容{content}，美化markdown文档的结构。"
+    if len(content) > 0:
+        prompt = f"请根据markdown文档内容{content}，美化markdown文档的结构。"
+       
     md_pretty_content = markdown_pro.invoke(prompt).content.strip()
     if md_pretty_content.startswith("```markdown"):
         md_pretty_content = md_pretty_content.replace("```markdown", "")
