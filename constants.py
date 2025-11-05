@@ -34,3 +34,9 @@ CODE_EXTENSIONS = [
 
 # execute_plan_node 分析需求失败时的返回值
 REQUIREMENT_FAIL_MESSAGE = "需求分析失败！"
+
+# execute_replan_node 读取需求失败时的返回值
+REQUIREMENT_READ_FAIL_MESSAGE = "需求读取失败！"
+
+# 未知错误时的返回值
+UNKNOWN_ERROR_MESSAGE = "未知错误！"

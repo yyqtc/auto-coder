@@ -105,6 +105,8 @@ agent = _init_agent()
 async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     os.makedirs(f"./dist/{config['PROJECT_NAME']}", exist_ok=True)
 
+    count = int(state["input"].split("：")[1])
+
     warning_file = check_and_convert_file()
 
     if len(warning_file) and os.path.exists(warning_file):
@@ -137,7 +139,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
             cnt += 1
         shutil.move(todo_list_file, f"./todo/todo_list_{cnt}.md")
 
-    result = analyze_what_to_do()
+    result = analyze_what_to_do(count)
     if result == "执行失败！" or result == "分析失败！":
         return {
             "response": REQUIREMENT_FAIL_MESSAGE

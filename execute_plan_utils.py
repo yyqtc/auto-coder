@@ -170,7 +170,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         logger.error(f"详细信息: {e}")
         return "执行失败！"
 
-def analyze_what_to_do():
+def analyze_what_to_do(count=0):
     env_vars = {
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
@@ -180,6 +180,20 @@ def analyze_what_to_do():
         with open(f"./dist/{config['PROJECT_NAME']}/summary.md", "r", encoding="utf-8") as f:
             summary_content = f.read()
         prompt = f"请结合项目总结日志内容, 项目总结日志内容如下：\n{summary_content}\n\n根据本目录下所有文件，分析总结本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
+
+    if count > 0:
+        opinion = ""
+        with open(f"./opnion/opinion.txt", "r", encoding="utf-8") as f:
+            opinion = f.read()
+            
+        if len(opinion) > 0:
+            prompt += f"""
+
+            注意！
+            分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
+            审核员意见如下：
+            {opinion}
+            """
 
     if config["MOCK"]:
         return _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)

@@ -1,0 +1,107 @@
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from execute_custom_type import Plan, Response, Act, PlanExecute
+from constants import REQUIREMENT_READ_FAIL_MESSAGE, UNKNOWN_ERROR_MESSAGE
+
+import json
+
+config = json.load(open("config.json", encoding="utf-8"))
+
+_model = ChatOpenAI(
+    model="qwen-plus",
+    openai_api_key=config["QWEN_API_KEY"],
+    openai_api_base=config["QWEN_API_BASE"],
+    temperature=0.7
+)
+
+summary_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        f"""
+        你是一位非常专业的总结专家，善于抓住项目日志中的重点内容。请把项目日志的字数控制在{config["SUMMARY_MAX_LENGTH"]}个token以内。
+        注意！
+        尽量保留日志中的重要信息，适当压缩其他信息，不要遗漏重要信息！
+        """
+    ),
+    ("user", "{input}")
+])
+
+summary_pro = summary_prompt | _model
+
+_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+        你是一位非常苛刻的需求分析专家，善于根据计划执行情况分析当前计划是否符合客户需求。
+
+        我们的客户的需求是：
+        {todo}
+
+
+        我们最近一次计划是：
+        {plan}
+
+
+        我们已经完成了以下步骤并取得了一些成果：
+        {past_steps}
+
+
+        根据以上信息分析是否需要更新计划，如果你认为不需要则直接输出“开发完成”，否则你需要修正计划并输出。
+            
+        注意！
+        1. 执行你的计划的团队是一个只能执行文件删除、列出目录下文件、编写代码或文档、创建文件夹的废物IT开发团队！除了这些命令，他们理解不了任何命令！
+        2. 他们非常的忙！所以尽量保证任务拆分得足够小！让他们能够快速完成任务！
+        3. 我们的预算非常有限！因此你必须保证你列出来的任务是和用户需求相关的！不要反复的创建删除同一个文件或目录！
+        4. 确保计划中的每一步都能够得到所有需要的信息！
+        5. 确保计划的最后一步完成后用户能够得到一个完整可运行的项目！
+        6. 计划请以JSON格式输出，包含action字段，action字段应该包含steps字段，steps字段类型List[str]！
+        7. 答案请以JSON格式输出，包含action字段，action字段应该包含response字段，response字段类型str！
+        """
+    )
+])
+
+agent = _prompt | _model.with_structured_output(Act)
+
+
+async def execute_replan_node(state: PlanExecute) -> PlanExecute:
+    todo = ""
+    try:
+        with open(f"./todo/todo.md", "r", encoding="utf-8") as f:
+            todo = f.read()
+        if len(todo) > config["SUMMARY_MAX_LENGTH"]:
+            todo = summary_pro.invoke(f"请总结项目需求，项目需求内容如下：\n{todo}").content.strip()
+    except Exception as e:
+        return {
+            "response": REQUIREMENT_READ_FAIL_MESSAGE
+        }
+
+    plan = state["plan"]
+    plan = "\n".join(plan)
+    
+    past_steps = state["past_steps"]
+    past_steps_content = ""
+    for past_step in past_steps:
+        step, response = past_step
+        past_steps_content += f"步骤：{step}\n响应：{response}\n\n"
+
+    if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
+        past_steps_content = summary_pro.invoke(f"请总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}").content.strip()
+
+    result = await agent.ainvoke({
+        "todo": todo,
+        "plan": plan,
+        "past_steps": past_steps_content
+    })
+
+    if isinstance(result.action, Response):
+        return {
+            "response": result.action.response
+        }
+    elif isinstance(result.action, Plan):
+        return {
+            "plan": result.action.steps
+        }
+    else:
+        return {
+            "response": UNKNOWN_ERROR_MESSAGE
+        }
