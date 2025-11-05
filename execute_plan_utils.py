@@ -186,21 +186,20 @@ def analyze_what_to_do(count=0):
             summary_content = f.read()
         prompt = f"请结合项目总结日志内容, 项目总结日志内容如下：\n{summary_content}\n\n根据本目录下所有文件，分析总结本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
 
-    if count > 0:
-        opinion = ""
-        opinion_file = f"./opinion/{config['PROJECT_NAME']}.md"
-        if os.path.exists(opinion_file):
-            with open(opinion_file, "r", encoding="utf-8") as f:
-                opinion = f.read()
+    opinion = ""
+    opinion_file = f"./opinion/{config['PROJECT_NAME']}.md"
+    if count > 0 or os.path.exists(opinion_file):
+        with open(opinion_file, "r", encoding="utf-8") as f:
+            opinion = f.read()
 
-        if len(opinion) > 0:
-            prompt += f"""
+    if len(opinion) > 0:
+        prompt += f"""
 
-            注意！
-            分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
-            审核员意见如下：
-            {opinion}
-            """
+        注意！
+        分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
+        审核员意见如下：
+        {opinion}
+        """
 
     if config["MOCK"]:
         return _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)
