@@ -5,12 +5,15 @@ from review_node import review_node
 from execute_zgraph import execute_zgraph
 
 import os
+import json
 import asyncio
+
+config = json.load(open("./config.json", "r", encoding="utf-8"))
 
 def _init_project_structure():
     os.makedirs("experiment", exist_ok=True)
     os.makedirs("history", exist_ok=True)
-    os.makedirs("opnion", exist_ok=True)
+    os.makedirs("opinion", exist_ok=True)
     os.makedirs("todo", exist_ok=True)
     os.makedirs("dist", exist_ok=True)
 
@@ -39,6 +42,10 @@ app = _init_graph()
 
 async def main():
     _init_project_structure()
+
+    if not os.path.exists(f"./todo/{config['PROJECT_NAME']}"):
+        print("项目需求不存在")
+        return 
 
     result = await app.ainvoke({
         "count": 0

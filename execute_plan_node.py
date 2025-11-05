@@ -30,7 +30,7 @@ def check_and_convert_file():
     
     skip_dirs = [dir.strip() for dir in skip_dirs if len(dir.strip()) > 0]
 
-    todo_dir = Path(f"./todo/")
+    todo_dir = Path(f"./todo/{config['PROJECT_NAME']}/")
     warning_file = ""
     for file in todo_dir.glob("**/*"):
         if any(part in skip_dirs for part in file.parts):
@@ -44,14 +44,14 @@ def check_and_convert_file():
                     if not len(warning_file):
                         cnt = 0
                         while True:
-                            if cnt == 0 and os.path.exists(f"./todo/warning.md"):
+                            if cnt == 0 and os.path.exists(f"./todo/{config['PROJECT_NAME']}/warning.md"):
                                 cnt += 1
-                            elif os.path.exists(f"./todo/warning_{cnt}.md"):
+                            elif os.path.exists(f"./todo/{config['PROJECT_NAME']}/warning_{cnt}.md"):
                                 cnt += 1
                             else:
                                 break
 
-                        warning_file = f"./todo/warning.md" if cnt == 0 else f"./todo/warning_{cnt}.md"
+                        warning_file = f"./todo/{config['PROJECT_NAME']}/warning.md" if cnt == 0 else f"./todo/{config['PROJECT_NAME']}/warning_{cnt}.md"
 
                     with open(warning_file, "a+", encoding="utf-8") as f:
                         f.write(f"文件无法解析内容，请手动转换成markdown文件: {str(file)}\n\n")
@@ -68,14 +68,14 @@ def check_and_convert_file():
                         cnt = 0
 
                         while True:
-                            if cnt == 0 and os.path.exists(f"./todo/warning.md"):
+                            if cnt == 0 and os.path.exists(f"./todo/{config['PROJECT_NAME']}/warning.md"):
                                 cnt += 1
-                            elif os.path.exists(f"./todo/warning_{cnt}.md"):
+                            elif os.path.exists(f"./todo/{config['PROJECT_NAME']}/warning_{cnt}.md"):
                                 cnt += 1
                             else:
                                 break
 
-                        warning_file = f"./todo/warning.md" if cnt == 0 else f"./todo/warning_{cnt}.md"
+                        warning_file = f"./todo/{config['PROJECT_NAME']}/warning.md" if cnt == 0 else f"./todo/{config['PROJECT_NAME']}/warning_{cnt}.md"
 
                     with open(warning_file, "a+", encoding="utf-8") as f:
                         f.write(f"文件无法解析内容，请手动转换成markdown文件: {file.name}\n\n")
@@ -136,26 +136,26 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
             if user_input == "pass":
                 break
 
-    summary_file = f"./todo/summary.md"
+    summary_file = f"./todo/{config['PROJECT_NAME']}/summary.md"
     if os.path.exists(summary_file):
         cnt = 0
-        while os.path.exists(f"./todo/summary_{cnt}.md"):
+        while os.path.exists(f"./todo/{config['PROJECT_NAME']}/summary_{cnt}.md"):
             cnt += 1
-        shutil.move(summary_file, f"./todo/summary_{cnt}.md")
+        shutil.move(summary_file, f"./todo/{config['PROJECT_NAME']}/summary_{cnt}.md")
 
-    todo_file = f"./todo/todo.md"
+    todo_file = f"./todo/{config['PROJECT_NAME']}/todo.md"
     if os.path.exists(todo_file):
         cnt = 0
-        while os.path.exists(f"./todo/todo_{cnt}.md"):
+        while os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_{cnt}.md"):
             cnt += 1
-        shutil.move(todo_file, f"./todo/todo_{cnt}.md")
+        shutil.move(todo_file, f"./todo/{config['PROJECT_NAME']}/todo_{cnt}.md")
 
-    todo_list_file = f"./todo/todo_list.md"
+    todo_list_file = f"./todo/{config['PROJECT_NAME']}/todo_list.md"
     if os.path.exists(todo_list_file):
         cnt = 0
-        while os.path.exists(f"./todo/todo_list_{cnt}.md"):
+        while os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list_{cnt}.md"):
             cnt += 1
-        shutil.move(todo_list_file, f"./todo/todo_list_{cnt}.md")
+        shutil.move(todo_list_file, f"./todo/{config['PROJECT_NAME']}/todo_list_{cnt}.md")
 
     result = analyze_what_to_do(count)
     if result == "执行失败！" or result == "分析失败！":
@@ -163,7 +163,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
             "response": REQUIREMENT_FAIL_MESSAGE
         }
 
-    with open(f"./todo/todo.md", "r", encoding="utf-8") as f:
+    with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
         todo_content = f.read()
 
     user_input = f"""
@@ -174,22 +174,22 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     todo_list = []
     while True:
         user_prompt = user_input
-        if os.path.exists(f"./todo/todo_list.md"):
-            with open(f"./todo/todo_list.md", "r", encoding="utf-8") as f:
+        if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list.md"):
+            with open(f"./todo/{config['PROJECT_NAME']}/todo_list.md", "r", encoding="utf-8") as f:
                 user_prompt = f"结合原todo_list内容，todo_list内容如下：\n{f.read()}\n\n{user_prompt}"
             
         result = await agent.ainvoke(user_prompt)
         steps_content = "\n\n".join(result.steps if result.steps else [])
-        with open(f"./todo/todo_list.md", "w+", encoding="utf-8") as f:
+        with open(f"./todo/{config['PROJECT_NAME']}/todo_list.md", "w+", encoding="utf-8") as f:
             f.write(steps_content)
 
         while True:
-            user_check_opnion = input(f"请检查执行计划，执行计划内容详见./todo/todo_list.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
-            if user_check_opnion == "pass" or user_check_opnion == "reject":
+            user_check_opinion = input(f"请检查执行计划，执行计划内容详见./todo/{config['PROJECT_NAME']}/todo_list.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
+            if user_check_opinion == "pass" or user_check_opinion == "reject":
                 break
-        
-        if user_check_opnion == "pass":
-            with open(f"./todo/todo_list.md", "r", encoding="utf-8") as f:
+         
+        if user_check_opinion == "pass":
+            with open(f"./todo/{config['PROJECT_NAME']}/todo_list.md", "r", encoding="utf-8") as f:
                 temp_todo_list = f.read().splitlines()
                 todo_list = [step for step in temp_todo_list if len(step.strip()) > 0]
             

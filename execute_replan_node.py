@@ -78,7 +78,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
     todo = ""
     try:
-        with open(f"./todo/todo.md", "r", encoding="utf-8") as f:
+        with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
             todo = f.read()
         if len(todo) > config["SUMMARY_MAX_LENGTH"]:
             todo = summary_pro.invoke(f"请总结项目需求，项目需求内容如下：\n{todo}").content.strip()

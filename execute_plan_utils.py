@@ -99,10 +99,10 @@ def convert_docx_to_markdown(docx_path: str) -> str:
 
     docx_name = os.path.basename(docx_path).split(".")[0]
     doc = Document(docx_path)
-    os.makedirs(f"./todo/{docx_name}", exist_ok=True)
-    os.makedirs(f"./todo/{docx_name}/img", exist_ok=True)
-    with open(f"./todo/{docx_name}/todo.md", "w+", encoding="utf-8") as f:
-        f.write(_revert_docx_to_md(doc, f"./todo/{docx_name}"))
+    os.makedirs(f"./todo/{config['PROJECT_NAME']}/{docx_name}", exist_ok=True)
+    os.makedirs(f"./todo/{config['PROJECT_NAME']}/{docx_name}/img", exist_ok=True)
+    with open(f"./todo/{config['PROJECT_NAME']}/{docx_name}/todo.md", "w+", encoding="utf-8") as f:
+        f.write(_revert_docx_to_md(doc, f"./todo/{config['PROJECT_NAME']}/{docx_name}"))
 
 def convert_pdf_to_markdown(pdf_path: str) -> str:
     from PyPDF2 import PdfReader
@@ -126,10 +126,10 @@ def convert_pdf_to_markdown(pdf_path: str) -> str:
                 content += page_content + "\n\n"
                 
         pdf_name = os.path.basename(pdf_path).split(".")[0]
-        if not os.path.exists(f"./todo/{pdf_name}"):
-            os.makedirs(f"./todo/{pdf_name}", exist_ok=True)
+        if not os.path.exists(f"./todo/{config['PROJECT_NAME']}/{pdf_name}"):
+            os.makedirs(f"./todo/{config['PROJECT_NAME']}/{pdf_name}", exist_ok=True)
         
-        with open(f"./todo/{pdf_name}/todo.md", "w+", encoding="utf-8") as f:
+        with open(f"./todo/{config['PROJECT_NAME']}/{pdf_name}/todo.md", "w+", encoding="utf-8") as f:
             f.write(content)
 
     return "pdf文件转换为markdown文件成功"
@@ -144,7 +144,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
     """
     try:
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        base_command = f"cd {project_path}/todo"
+        base_command = f"cd {project_path}/todo/{config['PROJECT_NAME']}"
         if env_vars:
             env_exports = ' '.join([f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()])
             full_command = f"{base_command} && {env_exports} && {script_command}"
@@ -188,7 +188,7 @@ def analyze_what_to_do(count=0):
 
     if count > 0:
         opinion = ""
-        opinion_file = f"./opnion/{config['PROJECT_NAME']}.txt"
+        opinion_file = f"./opinion/{config['PROJECT_NAME']}.txt"
         if os.path.exists(opinion_file):
             with open(opinion_file, "r", encoding="utf-8") as f:
                 opinion = f.read()
