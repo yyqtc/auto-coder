@@ -1,4 +1,4 @@
-from langchain.tools import tool, async_tool
+from langchain.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from constants import CODE_EXTENSIONS
@@ -151,7 +151,7 @@ def read_todo_content() -> str:
     with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
         return f.read()
 
-@async_tool
+@tool
 async def check_project_code() -> str:
     """
     根据上一轮的项目代码，总结项目当前的做了哪些修改，判断项目的代码是否存在语法错误或逻辑错误。
