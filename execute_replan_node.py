@@ -83,7 +83,8 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     try:
         with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
             todo = f.read()
-            todo = summary_pro.invoke(f"请总结项目需求成一段话，输出结果控制在{config["SUMMARY_MAX_LENGTH"]}个token以内，项目需求内容如下：\n{todo}").content.strip()
+            if len(todo) > config["SUMMARY_MAX_LENGTH"]:
+                todo = summary_pro.invoke(f"请总结项目需求成一段话，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}").content.strip()
     except Exception as e:
         return {
             "response": REQUIREMENT_READ_FAIL_MESSAGE
