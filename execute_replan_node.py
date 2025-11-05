@@ -57,7 +57,7 @@ _prompt = ChatPromptTemplate.from_messages([
         {past_steps}
 
 
-        根据以上信息分析是否需要更新计划，如果你认为不需要则直接输出“开发完成”，否则你需要修正计划并输出。
+        根据以上信息分析是否需要继续开发，如果你认为不需要则直接输出“开发完成”，否则你需要检查计划是否需要修正，如果需要修正则输出修正后的计划，否则输出原计划。
             
         注意！
         1. 执行你的计划的团队是一个只能执行文件删除、列出目录下文件、编写代码或文档、创建文件夹的废物IT开发团队！除了这些命令，他们理解不了任何命令！
@@ -82,8 +82,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     try:
         with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
             todo = f.read()
-        if len(todo) > config["SUMMARY_MAX_LENGTH"]:
-            todo = summary_pro.invoke(f"请总结项目需求，项目需求内容如下：\n{todo}").content.strip()
+            todo = summary_pro.invoke(f"请总结项目需求成一段话，输出结果控制在{config["SUMMARY_MAX_LENGTH"]}个token以内，项目需求内容如下：\n{todo}").content.strip()
     except Exception as e:
         return {
             "response": REQUIREMENT_READ_FAIL_MESSAGE
