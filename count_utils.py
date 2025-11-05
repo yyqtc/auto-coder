@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 import os
 import json
 import logging
+import asyncio
 
 logging.basicConfig(
     level=logging.INFO,
@@ -67,7 +68,7 @@ markdown_prompt = ChatPromptTemplate.from_messages([
 
 markdown_pro = markdown_prompt | dp_model
 
-def summarize_project() -> str:
+async def summarize_project() -> str:
     if not os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
         return "项目不存在"
     
@@ -79,22 +80,37 @@ def summarize_project() -> str:
 
     skip_dirs = [dir.strip() for dir in skip_dirs if len(dir.strip()) > 0]
 
-    content = ""
+    async_tasks = []
+    async def process_file_summary(file_path):
+        """异步处理文件总结任务"""
+        try:
+            file_content = file_path.read_text(encoding="utf-8")
+            summary_result = await summary_pro.ainvoke(f"请总结文件内容，文件内容如下所示：\n{file_content}")
+            return f"文件{str(file_path)}的内容总结：\n{summary_result.content.strip()}\n\n"
+        except Exception as e:
+            logger.error(f"处理文件 {str(file_path)} 总结时出错: {e}")
+            return ""
+
+    content_parts = []
 
     for file in dist_path.glob("**/*"):
         if any(part in skip_dirs for part in file.parts):
             continue
 
         if file.is_file():
-            if len(content) > config["SUMMARY_MAX_LENGTH"]:
-                content = summary_pro.invoke(f"当前项目更新日志内容如下所示：\n{content}").content.strip()
+            task = process_file_summary(file)
+            async_tasks.append(task)
 
-            try:
-                file_content = file.read_text(encoding="utf-8")
-                summary_result = summary_pro.invoke(f"请总结文件内容，文件内容如下所示：\n{file_content}").content.strip()
-                content += f"文件{file.name}的内容总结：\n{summary_result}\n\n"
-            except Exception as e:
-                continue
+    if len(async_tasks) > 0:
+        async_results = await asyncio.gather(*async_tasks)
+        for result in async_results:
+            if result:
+                content_parts.append(result)
+
+    content = "".join(content_parts)
+
+    if len(content) > config["SUMMARY_MAX_LENGTH"]:
+        content = summary_pro.invoke(f"当前项目更新日志内容如下所示：\n{content}").content.strip()
 
     prompt = f"请根据markdown文档内容{content}，美化markdown文档的结构。"
     md_pretty_content = markdown_pro.invoke(prompt).content.strip()
@@ -107,3 +123,6 @@ def summarize_project() -> str:
         f.write(md_pretty_content)
 
     return md_pretty_content
+
+if __name__ == "__main__":
+    asyncio.run(summarize_project())

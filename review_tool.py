@@ -1,4 +1,4 @@
-from langchain.tools import tool
+from langchain.tools import tool, async_tool
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from constants import CODE_EXTENSIONS
@@ -6,6 +6,7 @@ from constants import CODE_EXTENSIONS
 import json
 import os
 import logging
+import asyncio
 
 logging.basicConfig(
     level=logging.INFO,
@@ -150,8 +151,8 @@ def read_todo_content() -> str:
     with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
         return f.read()
 
-@tool
-def check_project_code() -> str:
+@async_tool
+async def check_project_code() -> str:
     """
     根据上一轮的项目代码，总结项目当前的做了哪些修改，判断项目的代码是否存在语法错误或逻辑错误。
 
@@ -183,68 +184,108 @@ def check_project_code() -> str:
     if not history_path.exists():
         history_check_flag = False
 
-    content = ""
+    content_parts = []  # 收集所有同步生成的内容片段
+    async_tasks = []  # 收集所有需要异步处理的任务
 
+    async def process_file_summary(file_path):
+        """异步处理文件总结任务"""
+        try:
+            file_content = file_path.read_text(encoding="utf-8")
+            summary_result = await summary_pro.ainvoke(f"请总结文件内容，文件内容如下所示：\n{file_content}")
+            return f"文件{str(file_path)}的内容总结：\n{summary_result.content.strip()}\n\n"
+        except Exception as e:
+            logger.error(f"处理文件 {str(file_path)} 总结时出错: {e}")
+            return ""
+
+    async def process_file_diff(file_path, history_file_path):
+        """异步处理文件diff计算"""
+        try:
+            history_file_content = history_file_path.read_text(encoding="utf-8")
+            history_file_content = history_file_content.splitlines()
+            file_content = file_path.read_text(encoding="utf-8")
+            file_content = file_content.splitlines()
+            diff_result = difflib.unified_diff(
+                history_file_content, file_content,
+                fromfile=str(history_file_path),
+                tofile=str(file_path),
+                lineterm=''
+            )
+            diff_result = "\n".join(diff_result)
+            return f"文件{str(file_path)}修改前后的内容差异：\n{diff_result}\n\n"
+        except Exception as e:
+            logger.error(f"处理文件 {str(file_path)} diff时出错: {e}")
+            return ""
+
+    async def process_code_summary(file):
+        """异步处理代码总结任务"""
+        try:
+            file_content = file.read_text(encoding="utf-8")
+            diff_result = code_pro.invoke(f"请总结代码的功能,代码内容如下所示：\n{file_content}").content.strip()
+            content_parts.append(f"修改后文件{str(file)}实现的功能：\n{diff_result}\n\n")
+        except Exception as e:
+            logger.error(f"处理文件 {str(file)} 代码总结时出错: {e}")
+            return ""
+
+
+    # 第一阶段：快速收集所有文件信息，不阻塞
+    # 对于需要异步处理的文件，创建任务但不等待，继续处理其他文件
     for file in dist_path.glob("**/*"):
         if any(part in skip_dirs for part in file.parts):
             continue
 
         if file.is_file():
-            if len(content) > config["SUMMARY_MAX_LENGTH"]:
-                content = summary_pro.invoke(f"当前项目更新日志内容如下所示：\n{content}").content.strip()
-                
-            history_file = history_path / file.name
+            history_file = Path(str(file).replace(str(dist_path), str(history_path)))
             if history_check_flag and history_file.exists():
-                if not filecmp.cmp(file, history_file, shallow=False):
-                    content += f"文件{file.name}没有发生变化\n\n"
-
-                elif file.suffix.lower() in CODE_EXTENSIONS:
-                    file_content = file.read_text(encoding="utf-8")
-                    diff_result = code_pro.invoke(f"请总结代码的功能,代码内容如下所示：\n{file_content}").content.strip()
-                    content += f"修改后文件{file.name}实现的功能：\n{diff_result}\n\n"
-
-                else:
-                    try:
-                        history_file_content = history_file.read_text(encoding="utf-8")
-                        history_file_content = history_file_content.splitlines()
-                        file_content = file.read_text(encoding="utf-8")
-                        file_content = file_content.splitlines()
-                        diff_result = difflib.unified_diff(
-                            history_file_content, file_content,
-                            fromfile=f"history/{config['PROJECT_NAME']}/{file.name}",
-                            tofile=f"dist/{config['PROJECT_NAME']}/{file.name}",
-                            lineterm=''
-                        )
-                        diff_result = "\n".join(diff_result)
-                        content += f"文件{file.name}修改前后的内容差异：\n{diff_result}\n\n"
-
-                    except Exception as e:
-                        continue
-            elif file.suffix.lower() in CODE_EXTENSIONS:
-                file_content = file.read_text(encoding="utf-8")
-                diff_result = code_pro.invoke(f"请总结代码的功能,代码内容如下所示：\n{file_content}").content.strip()
-                content += f"新建文件{file.name}实现的功能：\n{diff_result}\n\n"
-            else:
-                try:
-                    file_content = file.read_text(encoding="utf-8")
-                    summary_result = summary_pro.invoke(f"请总结文件内容，文件内容如下所示：\n{file_content}").content.strip()
-                    content += f"文件{file.name}的内容总结：\n{summary_result}\n\n"
-                except Exception as e:
+                if filecmp.cmp(file, history_file, shallow=False):
+                    # 文件没有变化，跳过
                     continue
-    
+                elif file.suffix.lower() in CODE_EXTENSIONS:
+                    # 代码文件，同步处理
+                    task = process_code_summary(file)
+                    async_tasks.append(task)
+                else:
+                    # 非代码文件，异步处理diff
+                    task = process_file_diff(file, history_file)
+                    async_tasks.append(task)
+            elif file.suffix.lower() in CODE_EXTENSIONS:
+                # 新建代码文件，同步处理
+                task = process_code_summary(file)
+                async_tasks.append(task)
+            else:
+                # 新建非代码文件，需要异步总结，创建任务但不等待
+                task = process_file_summary(file)
+                async_tasks.append(task)
+
+    # 第二阶段：等待所有异步任务完成（不阻塞，并发执行）
+    if len(async_tasks) > 0:
+        async_results = await asyncio.gather(*async_tasks)
+        for result in async_results:
+            if result:
+                content_parts.append(result)
+
+    # 第三阶段：处理删除的文件
     for file in history_path.glob("**/*"):
         if any(part in skip_dirs for part in file.parts):
             continue
 
         if file.is_file():
-            dist_path = dist_path / file.name
-            if not dist_path.exists():
-                content += f"文件{file.name}被删除了\n\n"
+            dist_file = Path(str(file).replace(str(history_path), str(dist_path)))
+            if not dist_file.exists():
+                content_parts.append(f"文件{str(file)}被删除了\n\n")
 
+    # 第四阶段：合并所有内容片段
+    content = "".join(content_parts)
+    
+    # 第五阶段：如果内容超过限制，进行压缩
+    if len(content) > config["SUMMARY_MAX_LENGTH"]:
+        summary_result = await summary_pro.ainvoke(f"当前项目更新日志内容如下所示：\n{content}")
+        content = summary_result.content.strip()
+
+    md_pretty_content = ""
     if len(content) > 0:
         prompt = f"请根据markdown文档内容{content}，美化markdown文档的结构。"
-       
-    md_pretty_content = markdown_pro.invoke(prompt).content.strip()
+        md_pretty_content = markdown_pro.invoke(prompt).content.strip()
+    
     if md_pretty_content.startswith("```markdown"):
         md_pretty_content = md_pretty_content.replace("```markdown", "")
     if md_pretty_content.endswith("```"):
@@ -257,3 +298,6 @@ def check_project_code() -> str:
 
 
 tools = [read_todo_content, check_project_code, write_opinion_file, read_opinion_file]
+
+if __name__ == "__main__":
+    asyncio.run(check_project_code())

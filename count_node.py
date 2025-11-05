@@ -25,7 +25,7 @@ async def counter_node(state: ActionReview) -> ActionReview:
     
     logger.info(f"counter_node count: {count}")
 
-    if os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
+    if os.path.exists(f"./dist/{config['PROJECT_NAME']}") and not os.path.exists(f"./dist/{config['PROJECT_NAME']}/summary.md"):
         summarize_project()
     
     if "response" in state and len(state["response"]) > 0:
