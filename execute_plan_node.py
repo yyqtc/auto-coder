@@ -139,21 +139,21 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     if count == 0:
         summary_file = f"./todo/{config['PROJECT_NAME']}/summary.md"
         if os.path.exists(summary_file):
-            cnt = 0
+            cnt = 1
             while os.path.exists(f"./todo/{config['PROJECT_NAME']}/summary_{cnt}.md"):
                 cnt += 1
             shutil.move(summary_file, f"./todo/{config['PROJECT_NAME']}/summary_{cnt}.md")
 
         todo_file = f"./todo/{config['PROJECT_NAME']}/todo.md"
         if os.path.exists(todo_file):
-            cnt = 0
+            cnt = 1
             while os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_{cnt}.md"):
                 cnt += 1
             shutil.move(todo_file, f"./todo/{config['PROJECT_NAME']}/todo_{cnt}.md")
 
         todo_list_file = f"./todo/{config['PROJECT_NAME']}/todo_list.md"
         if os.path.exists(todo_list_file):
-            cnt = 0
+            cnt = 1
             while os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list_{cnt}.md"):
                 cnt += 1
             shutil.move(todo_list_file, f"./todo/{config['PROJECT_NAME']}/todo_list_{cnt}.md")
