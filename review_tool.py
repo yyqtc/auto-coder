@@ -316,7 +316,7 @@ async def check_project_code() -> str:
     return md_pretty_content
 
 
-tools = [read_todo_content, check_project_code, write_opinion_file, read_opinion_file]
+tools = [read_todo_content, check_project_code, write_opinion_file, read_opinion_file, read_development_log]
 
 if __name__ == "__main__":
     asyncio.run(check_project_code())
