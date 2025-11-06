@@ -175,8 +175,11 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
         todo_content = f.read()
 
     user_input = f"""
-    根据需求生成执行计划，需求内容如下：
-    {todo_content}
+        根据需求生成执行计划，需求内容如下：
+        {todo_content}
+
+        注意！
+        计划请以JSON格式输出，应该包含steps字段，steps字段类型List[str]！
     """
 
     todo_list = []
