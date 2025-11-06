@@ -65,7 +65,7 @@ def analyze_what_to_do(count=0, past_steps_content="", todo="", plan=""):
         我们的计划是：
         {plan}
 
-        根据以上信息分析这个项目现在的完成情况，并以markdown格式输出
+        根据以上信息分析这个项目现在的完成情况，并以markdown格式输出到development_log.md文件中。
     """
     if count > 0:
         opinion = ""

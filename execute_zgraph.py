@@ -73,9 +73,6 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
         step, response = past_step
         past_steps_content += f"步骤：{step}\n响应：{response}\n\n"
 
-    with open(f"./todo/{config['PROJECT_NAME']}/development_log.md", "w+", encoding="utf-8") as f:
-        f.write(past_steps_content)
-
     return {
         "count": count
     }

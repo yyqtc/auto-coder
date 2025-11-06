@@ -152,6 +152,25 @@ def read_todo_content() -> str:
         return f.read()
 
 @tool
+def read_development_log() -> str:
+    """
+    读取项目开发日志内容
+
+    Args:
+        无
+    
+    Returns:
+        如果文件不存在，返回“文件不存在”
+        如果文件存在，返回文件的内容
+    """
+    logger.info("use read_development_log tool")
+    if not os.path.exists(f"./todo/{config['PROJECT_NAME']}/development_log.md"):
+        return "文件不存在"
+
+    with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "r", encoding="utf-8") as f:
+        return f.read()
+
+@tool
 async def check_project_code() -> str:
     """
     根据上一轮的项目代码，总结项目当前的做了哪些修改，判断项目的代码是否存在语法错误或逻辑错误。
