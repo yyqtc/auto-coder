@@ -105,6 +105,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
     if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
         past_steps_content = summary_pro.invoke(f"请总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}").content.strip()
+        past_steps = [("过去一系列任务总结", past_steps_content)]
 
     logger.info(f"开发成果: \n{past_steps_content}")
     
@@ -134,7 +135,8 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         }
     elif isinstance(result.action, Plan):
         return {
-            "plan": result.action.steps
+            "plan": result.action.steps,
+            "past_steps": past_steps
         }
     else:
         return {

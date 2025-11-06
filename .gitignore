@@ -1,8 +1,43 @@
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 项目特定
 experiment/
 history/
 opinion/
 todo/
 dist/
 
+# 配置文件
 config.json
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.log
+
+# 测试覆盖率
+.coverage
+htmlcov/
+.pytest_cache/
+
+# 构建文件
+build/
+dist/
+*.egg-info/
