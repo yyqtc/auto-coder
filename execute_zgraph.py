@@ -8,6 +8,8 @@ from execute_execute_node import execute_node
 import asyncio
 import json
 import logging
+import shutil
+import os
 
 logging.basicConfig(
     level=logging.INFO,
@@ -62,16 +64,17 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
     recursion_limit = config.get("RECURSION_LIMIT", 50)
     logger.info(f"迭代次数：{recursion_limit}")
 
-    await app.ainvoke({
-        "input": f"开发轮数：{count}"
-    }, {
-        "recursion_limit": recursion_limit
-    })
+    try:
+        await app.ainvoke({
+            "input": f"开发轮数：{count}"
+        }, {
+            "recursion_limit": recursion_limit
+        })
 
-    past_steps_content = ""
-    for past_step in state.get("past_steps", []):
-        step, response = past_step
-        past_steps_content += f"步骤：{step}\n响应：{response}\n\n"
+    except Exception as e:
+        shutil.rmtree(f"./dist/{config['PROJECT_NAME']}")
+        if os.path.exists(f"./history/{config['PROJECT_NAME']}"):
+            shutil.copytree(f"./history/{config['PROJECT_NAME']}", f"./dist/{config['PROJECT_NAME']}")
 
     return {
         "count": count
