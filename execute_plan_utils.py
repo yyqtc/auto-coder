@@ -192,6 +192,19 @@ def analyze_what_to_do():
         {opinion}
         """
 
+    development_log = ""
+    development_log_file = f"./dist/{config['PROJECT_NAME']}/development_log.md"
+    with open(development_log_file, "r", encoding="utf-8") as f:
+        development_log = f.read()
+
+    if len(development_log) > 0:
+        prompt += f"""
+
+        分析中你必须考虑开发日志，并根据开发日志调整分析结果。
+        开发日志如下：
+        {development_log}
+        """
+
     if config["MOCK"]:
         return _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)
     else:
