@@ -175,7 +175,7 @@ def analyze_what_to_do(count=0):
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
     
-    prompt = "请根据以下信息分析本次需求需要做的事情"
+    prompt = "请根据以下信息分析本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
     if count == 0:
         prompt = """
             根据本目录下所有文档，分析总结本次需求需要做的事情，
