@@ -7,10 +7,10 @@ name = "auto-coder"
 version = "0.1.0"
 description = "An intelligent code generation system based on LangGraph and LangChain with multi-agent collaboration"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12.9"
 license = {text = "MIT"}
 authors = [
-    {name = "Auto-Coder Contributors"}
+    {name = "Yuqiang Yan"}
 ]
 keywords = ["ai", "code-generation", "langchain", "langgraph", "multi-agent"]
 classifiers = [
@@ -25,13 +25,13 @@ classifiers = [
 ]
 
 dependencies = [
-    "langchain>=0.1.0",
-    "langchain-openai>=0.0.5",
-    "langgraph>=0.0.20",
-    "pydantic>=2.0.0",
-    "typing-extensions>=4.8.0",
-    "python-docx>=1.1.0",
-    "PyPDF2>=3.0.0",
+    "langchain>=1.0",
+    "langchain-openai>=1.0",
+    "langgraph>=1.0",
+    "pydantic>=2.11.7",
+    "typing-extensions>=4.14.1",
+    "python-docx>=1.2.0",
+    "PyPDF2>=3.0.1",
 ]
 
 [project.optional-dependencies]
@@ -59,7 +59,7 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.12.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

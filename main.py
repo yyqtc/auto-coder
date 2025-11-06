@@ -7,8 +7,15 @@ from execute_zgraph import execute_zgraph
 import os
 import json
 import asyncio
+import argparse
 
 config = json.load(open("./config.json", "r", encoding="utf-8"))
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--count", type=int, default=0)
+args = parser.parse_args()
+
+count = args.count
 
 def _init_project_structure():
     os.makedirs("experiment", exist_ok=True)
@@ -40,7 +47,7 @@ def _init_graph():
 
 app = _init_graph()
 
-async def main():
+async def main(count=0):
     _init_project_structure()
 
     if not os.path.exists(f"./todo/{config['PROJECT_NAME']}"):
@@ -49,7 +56,7 @@ async def main():
 
     recursion_limit = config.get("RECURSION_LIMIT", 50)
     result = await app.ainvoke({
-        "count": 0,
+        "count": count,
     }, {
         "recursion_limit": recursion_limit
     })
@@ -57,4 +64,4 @@ async def main():
     print("result: ", result.get("response", "响应为空"))
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(count))

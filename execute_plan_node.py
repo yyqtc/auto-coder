@@ -126,7 +126,9 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
 
     logger.info(f"进行第{count}轮需求分析-开发工作")
 
-    warning_file = check_and_convert_file()
+    warning_file = ""
+    if count == 0:
+        warning_file = check_and_convert_file()
 
     if len(warning_file) and os.path.exists(warning_file):
         while True:

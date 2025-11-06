@@ -174,13 +174,15 @@ def analyze_what_to_do(count=0):
     env_vars = {
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
-
-    prompt = """
-        根据本目录下所有文档，分析总结本次需求需要做的事情，
-        并以markdown格式写到本文件夹下的todo.md文件中。
-        注意！
-        不要写和开发项目无关的任何内容！
-    """
+    
+    prompt = "请根据以下信息分析本次需求需要做的事情"
+    if count == 0:
+        prompt = """
+            根据本目录下所有文档，分析总结本次需求需要做的事情，
+            并以markdown格式写到本文件夹下的todo.md文件中。
+            注意！
+            不要写和开发项目无关的任何内容！
+        """
     if os.path.exists(f"./dist/{config['PROJECT_NAME']}/summary.md"):
         with open(f"./dist/{config['PROJECT_NAME']}/summary.md", "r", encoding="utf-8") as f:
             summary_content = f.read()
