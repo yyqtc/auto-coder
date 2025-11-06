@@ -23,6 +23,53 @@ logger = logging.getLogger(__name__)
 
 config = json.load(open("config.json", "r", encoding="utf-8"))
 
+plan_model = ChatOpenAI(
+    model="qwen-max",
+    openai_api_key=config["QWEN_API_KEY"],
+    openai_api_base=config["QWEN_API_BASE"],
+    temperature=0.7
+).with_structured_output(Plan)
+
+plan_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+            你是一位非常专业的需求分析专家，善于分析需求并给出执行计划。
+            注意！
+            1. 你必须默认项目文件夹已经被创建了！
+            2. 你必须知道执行你计划的团队的能力包括：分析项目代码、编写代码和文档、创建文件夹、删除文件夹或文件、扫描项目目录和阅读需求文档。他们无法执行超出他们能力范围的命令！
+            3. 他们非常的忙！所以必须把任务中他们需要知道的信息明确地告诉他们！不要让他们去猜！让他们能够快速完成任务！
+            4. 你输出的计划内的步骤应该是相互独立的、可以与需求点一一对应的！
+            5. 不要反复的创建删除同一个文件或目录！
+            6. 确保计划中的每一个步骤都能够得到所有需要的信息！
+            7. 确保计划的最后一步完成后用户能够得到一个完整可运行的项目！
+            8. 如果你认为需要修正计划，请直接返回计划列表，不要返回答案！
+        """
+    ),
+    ("user", "{input}")
+])
+
+agent = plan_prompt | plan_model
+
+improve_opinion_model = ChatOpenAI(
+    model="qwen-plus",
+    openai_api_key=config["QWEN_API_KEY"],
+    openai_api_base=config["QWEN_API_BASE"],
+    temperature=0.7
+)
+
+improve_opinion_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+            你是一位非常专业的需求分析专家，善于根据需求给出计划的改进意见。
+        """
+    ),
+    ("user", "{input}")
+])
+
+improve_opinion_agent = improve_opinion_prompt | improve_opinion_model
+
 def check_and_convert_file():
     skip_dirs = []
     with open(f".spanignore", "r", encoding="utf-8") as f:
@@ -82,39 +129,18 @@ def check_and_convert_file():
 
     return warning_file
 
-def _init_agent():
-
-    _model = ChatOpenAI(
-        model="qwen-max",
-        openai_api_key=config["QWEN_API_KEY"],
-        openai_api_base=config["QWEN_API_BASE"],
-        temperature=0.7
-    ).with_structured_output(Plan)
-
-    _prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            """
-            你是一位非常专业的需求分析专家，善于分析需求并给出执行计划。
-            注意！
-            你必须默认项目文件夹已经被创建了！
-            你的下游是一个只能执行文件删除、列出目录下文件、编写代码或文档、创建文件夹的废物IT开发团队！除了这些命令，他们理解不了任何命令！
-            他们非常的忙！所以必须把任务中他们需要知道的信息明确地告诉他们！不要让他们去猜！让他们能够快速完成任务！
-            我们的预算非常有限！因此你必须保证你列出来的任务是和用户需求相关的！不要反复的创建删除同一个文件或目录！
-            确保计划中的每一步都能够得到所有需要的信息！你必须明确在每个步骤中告诉你的执行团队需要的信息！不要让他们去猜！
-            确保计划的最后一步完成后用户能够得到一个完整可运行的项目！
-            请以JSON格式输出计划，包含steps字段，steps字段类型List[str]！
-            """
-        ),
-        ("user", "{input}")
-    ])
-
-    return _prompt | _model
-
-agent = _init_agent()
-
 async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     os.makedirs(f"./dist/{config['PROJECT_NAME']}", exist_ok=True)
+
+    if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo.md"):
+        user_input = input(f"todo.md文件已存在，是否删除？(y/n): ")
+        if user_input == "y":
+            os.remove(f"./todo/{config['PROJECT_NAME']}/todo.md")
+
+    if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list.md"):
+        user_input = input(f"todo_list.md文件已存在，是否删除？(y/n): ")
+        if user_input == "y":
+            os.remove(f"./todo/{config['PROJECT_NAME']}/todo_list.md")
 
     try:
         count = int(state["input"].split("：")[1])
@@ -139,26 +165,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
             if user_input == "pass":
                 break
 
-    if count == 0:
-        summary_file = f"./todo/{config['PROJECT_NAME']}/summary.md"
-        if os.path.exists(summary_file):
-            cnt = 1
-            while os.path.exists(f"./todo/{config['PROJECT_NAME']}/summary_{cnt}.md"):
-                cnt += 1
-            shutil.move(summary_file, f"./todo/{config['PROJECT_NAME']}/summary_{cnt}.md")
-
-        todo_file = f"./todo/{config['PROJECT_NAME']}/todo.md"
-        if os.path.exists(todo_file):
-            cnt = 1
-            while os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_{cnt}.md"):
-                cnt += 1
-            shutil.move(todo_file, f"./todo/{config['PROJECT_NAME']}/todo_{cnt}.md")
-
-        todo_list_file = f"./todo/{config['PROJECT_NAME']}/todo_list.md"
-        if os.path.exists(todo_list_file):
-            os.remove(todo_list_file)
-
-    result = analyze_what_to_do(count)
+    result = analyze_what_to_do()
     if result == "执行失败！" or result == "分析失败！":
         return {
             "response": REQUIREMENT_FAIL_MESSAGE
@@ -168,13 +175,17 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
         todo_content = f.read()
 
     user_input = f"""
-    根据todo.md内容生成执行计划，todo.md内容如下：
+    根据需求生成执行计划，需求内容如下：
     {todo_content}
     """
 
     todo_list = []
+    improve_opinion = ""
     while True:
         user_prompt = user_input
+        if len(improve_opinion) > 0:
+            user_prompt = f"结合对原计划的改进意见，改进意见如下：\n{improve_opinion}\n\n{user_prompt}"
+
         if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list.md"):
             with open(f"./todo/{config['PROJECT_NAME']}/todo_list.md", "r", encoding="utf-8") as f:
                 user_prompt = f"结合原todo_list内容，todo_list内容如下：\n{f.read()}\n\n{user_prompt}"
@@ -195,6 +206,19 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
                 todo_list = [step for step in temp_todo_list if len(step.strip()) > 0]
             
             break
+
+        improve_opinion_wrapper = await improve_opinion_agent.ainvoke(f"""
+            请根据原计划和需求，给出改进意见：
+            原计划：
+            {steps_content}
+            需求：
+            {todo_content}
+
+            注意！
+            1. 执行计划的团队的能力包括：分析项目代码、编写代码和文档、创建文件夹、删除文件夹或文件、扫描项目目录和阅读需求文档。他们无法执行超出他们能力范围的命令！
+        """)
+
+        improve_opinion = improve_opinion_wrapper.content
     
     return {
         "plan": todo_list

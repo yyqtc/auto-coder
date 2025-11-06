@@ -84,12 +84,12 @@ def rm(path: str) -> str:
     return f"删除文件成功"
 
 @tool
-def write_code_or_file(prompt: str) -> str:
+def code_professional(prompt: str) -> str:
     """
-        让代码专家根据prompt编写代码或文件
+        可以分析项目代码、编写代码和文档的代码专家
 
         Args:
-            prompt: 编写代码或文件的prompt
+            prompt: 分析项目代码、编写代码或文件的prompt
 
         Returns:
             如果执行成功，返回代码专家的应答信息
@@ -99,8 +99,10 @@ def write_code_or_file(prompt: str) -> str:
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
 
-    logger.info("use write_code_or_file tool")
+    logger.info("use code_professional tool")
     logger.info(f"我收到的命令是: {prompt}")
+
+    prompt += "\n\n注意！代码分析结果统一按照markdown格式输出到当前文件夹下的analysis_result.md文件中！"
 
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force '{prompt}'", env_vars=env_vars)
@@ -170,7 +172,4 @@ def search_todo_dir(file_name: str) -> List[str]:
         return f.read()
 
 
-tools = [write_code_or_file, mkdir, list_files, rm, search_todo_dir]
-
-if __name__ == "__main__":
-    print(write_code_or_file("请在当前目录下创建一个hello.txt文件"))
+tools = [code_professional, mkdir, list_files, rm, search_todo_dir]

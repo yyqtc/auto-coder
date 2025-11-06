@@ -170,27 +170,16 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         logger.error(f"详细信息: {e}")
         return "执行失败！"
 
-def analyze_what_to_do(count=0):
+def analyze_what_to_do():
     env_vars = {
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
     
-    prompt = "请根据以下信息分析本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
-    if count == 0:
-        prompt = """
-            根据本目录下所有文档，分析总结本次需求需要做的事情，
-            并以markdown格式写到本文件夹下的todo.md文件中。
-            注意！
-            不要写和开发项目无关的任何内容！
-        """
-    if os.path.exists(f"./dist/{config['PROJECT_NAME']}/summary.md"):
-        with open(f"./dist/{config['PROJECT_NAME']}/summary.md", "r", encoding="utf-8") as f:
-            summary_content = f.read()
-        prompt = f"请结合项目总结日志内容, 项目总结日志内容如下：\n{summary_content}\n\n根据本目录下所有文件，分析总结本次需求需要做的事情，并以markdown格式写到本文件夹下的todo.md文件中。"
+    prompt = "请综合分析目录下所有文件内容，以需求点的形式一一列举，以markdown格式写到本文件夹下的todo.md文件中。"
 
     opinion = ""
     opinion_file = f"./opinion/{config['PROJECT_NAME']}.md"
-    if count > 0 or os.path.exists(opinion_file):
+    if os.path.exists(opinion_file):
         with open(opinion_file, "r", encoding="utf-8") as f:
             opinion = f.read()
 

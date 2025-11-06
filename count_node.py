@@ -1,6 +1,4 @@
 from custom_type import ActionReview
-from count_utils import summarize_project
-from langgraph.graph import END
 
 import os
 import shutil
@@ -25,16 +23,13 @@ async def counter_node(state: ActionReview) -> ActionReview:
     
     logger.info(f"counter_node count: {count}")
 
-    if os.path.exists(f"./dist/{config['PROJECT_NAME']}") and not os.path.exists(f"./dist/{config['PROJECT_NAME']}/summary.md"):
-        summarize_project()
-    
     if "response" in state and len(state["response"]) > 0:
         return {
             "response": state["response"]
         }
 
     
-    if count != 0:
+    if count != 0 and os.path.exists(f"./opinion/{config['PROJECT_NAME']}.md"):
         check_input = ""
         while check_input != "pass" and check_input != "reject":
             check_input = input(f"请检查审核意见->./opinion/{config['PROJECT_NAME']}.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")

@@ -59,13 +59,14 @@ def analyze_what_to_do(count=0, past_steps_content="", todo="", plan=""):
     }
 
     prompt = """
-        我们已经完成了以下步骤并取得了一些成果：
+        我们的开发团队已经完成了以下步骤并取得了一些成果：
         {past_steps_content}
 
         我们的计划是：
         {plan}
 
-        根据以上信息分析这个项目现在的完成情况，并以markdown格式输出到development_log.md文件中。
+        结合以上信息，检查现在项目中的代码，是否开发团队已经实现了他们描述的功能以及开发的代码是否存在问题。
+        将你的结论以markdown格式输出到development_log.md文件中。
     """
     if count > 0:
         opinion = ""
