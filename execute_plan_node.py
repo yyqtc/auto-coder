@@ -146,6 +146,14 @@ def check_and_convert_file():
 async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     os.makedirs(f"./dist/{config['PROJECT_NAME']}", exist_ok=True)
 
+    try:
+        count = int(state["input"].split("：")[1])
+    except (IndexError, ValueError) as e:
+        logger.info(f"解析input失败: {state.get('input', '')}, 错误: {e}")
+        return {
+            "response": "输入格式错误，无法解析开发轮数"
+        }
+
     if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo.md"):
         if should_auto_delete_files():
             # 打印模式下自动删除
@@ -163,14 +171,6 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
             user_input = get_input(f"todo_list.md文件已存在，是否删除？(y/n): ", default="y")
             if user_input == "y":
                 os.remove(f"./todo/{config['PROJECT_NAME']}/todo_list.md")
-
-    try:
-        count = int(state["input"].split("：")[1])
-    except (IndexError, ValueError) as e:
-        logger.info(f"解析input失败: {state.get('input', '')}, 错误: {e}")
-        return {
-            "response": "输入格式错误，无法解析开发轮数"
-        }
 
     logger.info(f"进行第{count + 1}轮需求分析-开发工作")
 
