@@ -150,7 +150,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
             "response": "输入格式错误，无法解析开发轮数"
         }
 
-    logger.info(f"进行第{count}轮需求分析-开发工作")
+    logger.info(f"进行第{count + 1}轮需求分析-开发工作")
 
     warning_file = ""
     if count == 0:
