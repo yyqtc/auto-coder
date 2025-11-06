@@ -134,7 +134,7 @@ def mkdir(path: str) -> str:
 @tool
 def list_files(path: str) -> List[str] | str:
     """
-        列出项目目录下指定相对路径下的所有文件的助手
+        列出工作目录下指定相对路径下的所有文件的助手
 
         Args:
             path: 要列出文件的目录的相对路径
@@ -151,7 +151,26 @@ def list_files(path: str) -> List[str] | str:
     dir_path = os.path.join(project_path, "dist", config["PROJECT_NAME"], path)
     return os.listdir(dir_path)
 
-tools = [write_code_or_file, mkdir, list_files, rm]
+@tool
+def search_todo_dir(file_name: str) -> List[str]:
+    """
+        可以浏览需求目录下所有文件的助手，告诉他文件名，他会在todo目录下搜索文件，如果文件存在，返回文件内容，否则返回文件不存在。
+        Args:
+            file_name: 要搜索的文件名
+
+        Returns:
+            如果文件存在，返回文件内容
+            如果文件不存在，返回“文件不存在”
+    """
+    logger.info("use search_todo_dir tool")
+    if not os.path.exists(f"{project_path}/todo/{config['PROJECT_NAME']}/{file_name}"):
+        return "文件不存在"
+    
+    with open(f"{project_path}/todo/{config['PROJECT_NAME']}/{file_name}", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+tools = [write_code_or_file, mkdir, list_files, rm, search_todo_dir]
 
 if __name__ == "__main__":
     print(write_code_or_file("请在当前目录下创建一个hello.txt文件"))
