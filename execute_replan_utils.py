@@ -53,12 +53,12 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         logger.error(f"详细信息: {e}")
         return "执行失败！"
 
-def analyze_what_to_do(count=0, past_steps_content="", todo="", plan=""):
+def analyze_what_to_do(count=0, past_steps_content="", plan=""):
     env_vars = {
         "CURSOR_API_KEY": config["CURSOR_API_KEY"]
     }
 
-    prompt = """
+    prompt = f"""
         我们的开发团队已经完成了以下步骤并取得了一些成果：
         {past_steps_content}
 

@@ -112,7 +112,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     analysis_count = 0
     project_status = ""
     while analysis_count < 3:
-        project_status = analyze_what_to_do(count=0, past_steps_content=past_steps_content, todo=todo, plan=plan)
+        project_status = analyze_what_to_do(count=0, past_steps_content=past_steps_content, plan=plan)
         if project_status != "分析失败！" and project_status != "执行失败！":
             break
 
