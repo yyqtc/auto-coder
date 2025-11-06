@@ -11,6 +11,20 @@ import json
 import shutil
 import asyncio
 import logging
+import sys
+
+# 添加 src 目录到 Python 路径，以便导入 print_mode
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "dist", "execute-agent", "src"))
+
+try:
+    from print_mode import get_input, should_auto_delete_files
+except ImportError:
+    # 如果导入失败，使用原始的 input 函数
+    def get_input(prompt, default="pass"):
+        return input(prompt)
+    
+    def should_auto_delete_files():
+        return False
 
 logging.basicConfig(
     level=logging.INFO,
@@ -133,14 +147,22 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     os.makedirs(f"./dist/{config['PROJECT_NAME']}", exist_ok=True)
 
     if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo.md"):
-        user_input = input(f"todo.md文件已存在，是否删除？(y/n): ")
-        if user_input == "y":
+        if should_auto_delete_files():
+            # 打印模式下自动删除
             os.remove(f"./todo/{config['PROJECT_NAME']}/todo.md")
+        else:
+            user_input = get_input(f"todo.md文件已存在，是否删除？(y/n): ", default="y")
+            if user_input == "y":
+                os.remove(f"./todo/{config['PROJECT_NAME']}/todo.md")
 
     if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list.md"):
-        user_input = input(f"todo_list.md文件已存在，是否删除？(y/n): ")
-        if user_input == "y":
+        if should_auto_delete_files():
+            # 打印模式下自动删除
             os.remove(f"./todo/{config['PROJECT_NAME']}/todo_list.md")
+        else:
+            user_input = get_input(f"todo_list.md文件已存在，是否删除？(y/n): ", default="y")
+            if user_input == "y":
+                os.remove(f"./todo/{config['PROJECT_NAME']}/todo_list.md")
 
     try:
         count = int(state["input"].split("：")[1])
@@ -157,13 +179,20 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
         warning_file = check_and_convert_file()
 
     if len(warning_file) and os.path.exists(warning_file):
-        while True:
-            user_input = input(f"""
+        # 打印模式下自动 pass，否则需要用户确认
+        user_input = get_input(f"""
+            存在无法解析内容的文件，请手动转换成markdown文件。
+            详见{warning_file}（无法解析的文件将被系统忽略）。
+            无疑问请输入pass继续执行：""", default="pass")
+        # 如果不在打印模式且用户输入不是 pass，继续等待用户输入
+        if user_input != "pass":
+            while True:
+                user_input = input(f"""
             存在无法解析内容的文件，请手动转换成markdown文件。
             详见{warning_file}（无法解析的文件将被系统忽略）。
             无疑问请输入pass继续执行：""")
-            if user_input == "pass":
-                break
+                if user_input == "pass":
+                    break
 
     result = analyze_what_to_do()
     if result == "执行失败！" or result == "分析失败！":
@@ -198,10 +227,13 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
         with open(f"./todo/{config['PROJECT_NAME']}/todo_list.md", "w+", encoding="utf-8") as f:
             f.write(steps_content)
 
-        while True:
-            user_check_opinion = input(f"请检查执行计划，执行计划内容详见./todo/{config['PROJECT_NAME']}/todo_list.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
-            if user_check_opinion == "pass" or user_check_opinion == "reject":
-                break
+        # 打印模式下自动 pass，否则需要用户确认
+        user_check_opinion = get_input(f"请检查执行计划，执行计划内容详见./todo/{config['PROJECT_NAME']}/todo_list.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：", default="pass")
+        if user_check_opinion != "pass" and user_check_opinion != "reject":
+            while True:
+                user_check_opinion = input(f"请检查执行计划，执行计划内容详见./todo/{config['PROJECT_NAME']}/todo_list.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
+                if user_check_opinion == "pass" or user_check_opinion == "reject":
+                    break
          
         if user_check_opinion == "pass":
             with open(f"./todo/{config['PROJECT_NAME']}/todo_list.md", "r", encoding="utf-8") as f:

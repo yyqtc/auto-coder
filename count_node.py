@@ -4,6 +4,17 @@ import os
 import shutil
 import json
 import logging
+import sys
+
+# 添加 src 目录到 Python 路径，以便导入 print_mode
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "dist", "execute-agent", "src"))
+
+try:
+    from print_mode import get_input
+except ImportError:
+    # 如果导入失败，使用原始的 input 函数
+    def get_input(prompt, default="pass"):
+        return input(prompt)
 
 config = json.load(open("./config.json", "r", encoding="utf-8"))
 
@@ -30,9 +41,11 @@ async def counter_node(state: ActionReview) -> ActionReview:
 
     
     if count != 0 and os.path.exists(f"./opinion/{config['PROJECT_NAME']}.md"):
-        check_input = ""
-        while check_input != "pass" and check_input != "reject":
-            check_input = input(f"请检查审核意见->./opinion/{config['PROJECT_NAME']}.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
+        # 打印模式下自动 pass，否则需要用户确认
+        check_input = get_input(f"请检查审核意见->./opinion/{config['PROJECT_NAME']}.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：", default="pass")
+        if check_input != "pass" and check_input != "reject":
+            while check_input != "pass" and check_input != "reject":
+                check_input = input(f"请检查审核意见->./opinion/{config['PROJECT_NAME']}.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject：")
         
         if check_input == "pass":
             return {
