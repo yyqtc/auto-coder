@@ -1,4 +1,4 @@
-from langchain_openai import ChatOpenAI
+﻿from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from execute_custom_type import Plan, Response, Act, PlanExecute
 from execute_replan_utils import analyze_what_to_do
@@ -99,8 +99,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
                         f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}"
                     ).content.strip()
 
-        except Exception as e:
-            return {"response": REQUIREMENT_READ_FAIL_MESSAGE}
+        except Exception as e:`n            logger.error(f"读取需求文档失败: {e}")`n            return "todo", ""
 
         return "todo", todo
 
@@ -126,7 +125,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         return "past_steps_content", past_steps_content
 
     async_tasks = [read_past_steps(), read_todo_content()]
-    async_results = asyncio.gather(*async_tasks)
+    async_results = await asyncio.gather(*async_tasks)
 
     past_steps_content = ""
     todo = ""
