@@ -9,6 +9,12 @@ import json
 import asyncio
 import argparse
 
+"""
+- 测试代码（最重要）
+- 英文文档
+- PR 模板
+"""
+
 config = json.load(open("./config.json", "r", encoding="utf-8"))
 
 parser = argparse.ArgumentParser()
