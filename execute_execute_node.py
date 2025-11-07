@@ -2,6 +2,7 @@ from execute_execute_tool import tools
 from execute_custom_type import PlanExecute
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
+from langgraph.checkpoint.memory import InMemorySaver
 
 import json
 import asyncio
@@ -40,7 +41,7 @@ def _init_agent():
         8. 你的可以浏览需求目录下所有文件的助手可以浏览需求目录下所有文件，但是他非常的蠢，他只会用你告诉他的文件名去搜索需求目录下所有文件！必须告诉在他的文件名后面带上扩展名！
     """
 
-    agent = create_agent(model=_model, system_prompt=_prompt, tools=tools)
+    agent = create_agent(model=_model, system_prompt=_prompt, tools=tools, checkpointer=InMemorySaver())
 
     return agent
 
@@ -49,6 +50,12 @@ agent = _init_agent()
 
 
 async def execute_node(state: PlanExecute) -> PlanExecute:
+    count = 0
+    try:
+        count = int(state["input"].split("：")[1])
+    except (IndexError, ValueError) as e:
+        logger.info(f"解析input失败: {state.get('input', '')}, 错误: {e}")
+        return {"response": "输入格式错误，无法解析开发轮数"}
 
     if not state.get("plan") or len(state["plan"]) == 0:
         logger.error("计划列表为空，无法执行任务")
@@ -60,7 +67,11 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
     完成这个任务：{task}。不要做和{task}无关的内容。
     """
 
-    agent_response = await agent.ainvoke({"messages": [("user", formatted_task)]})
+    agent_response = await agent.ainvoke({
+        "messages": [("user", formatted_task)]
+    }， {
+        "configurable": {"thread_id": f"{count}"}
+    })
 
     return {
         "past_steps": [(task, agent_response["messages"][-1].content)],
