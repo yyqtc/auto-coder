@@ -44,7 +44,9 @@ def _init_agent():
 
     return agent
 
+
 agent = _init_agent()
+
 
 async def execute_node(state: PlanExecute) -> PlanExecute:
 
