@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-config = json.load(open("config.json", 'r', encoding="utf-8"))
+config = json.load(open("config.json", "r", encoding="utf-8"))
 
 _model = ChatOpenAI(
     model="qwen-max",
@@ -110,6 +110,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         return ("todo", todo)
 
     past_steps = state.get("past_steps", [])
+
     async def read_past_steps(past_steps):
         past_steps_content = ""
         for past_step in past_steps:
@@ -129,14 +130,13 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
     past_steps_content = ""
     todo = ""
-    for (key, result) in async_results:
+    for key, result in async_results:
         if key == "past_steps_content":
             past_steps, past_steps_content = result
         elif key == "todo":
             todo = result
 
     logger.info(f"开发成果: \n{past_steps_content}")
-    
 
     analysis_count = 0
     project_status = ""
@@ -154,7 +154,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{project_status}"
         ).content.strip()
         logger.info("压缩开发日志成功")
-    
+
     with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "w+", encoding="utf-8") as f:
         f.write(project_status)
 

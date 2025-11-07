@@ -103,7 +103,7 @@ def read_development_log() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_development_log tool")
-    if not os.path.exists(f"./todo/{config['PROJECT_NAME']}/development_log.md"):
+    if not os.path.exists(f"./dist/{config['PROJECT_NAME']}/development_log.md"):
         return "文件不存在"
 
     with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "r", encoding="utf-8") as f:

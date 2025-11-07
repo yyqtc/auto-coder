@@ -3,6 +3,7 @@ from execute_custom_type import PlanExecute
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import InMemorySaver
+from langchain.agents.middleware import SummarizationMiddleware
 
 import json
 import asyncio
@@ -42,7 +43,17 @@ def _init_agent():
     """
 
     agent = create_agent(
-        model=_model, system_prompt=_prompt, tools=tools, checkpointer=InMemorySaver()
+        model=_model,
+        system_prompt=_prompt,
+        tools=tools,
+        checkpointer=InMemorySaver(),
+        middleware=[
+            SummarizationMiddleware(
+                model=_model,
+                max_tokens_before_summary=config["SUMMARY_MAX_LENGTH"],
+                messages_to_keep=20,
+            )
+        ],
     )
 
     return agent
