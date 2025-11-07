@@ -135,7 +135,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         if sleep_count >= 3:
             break
         
-        print(f"第{sleep_count + 1}次尝试读取开发日志...")
+        logger.info(f"第{sleep_count + 1}次尝试读取开发日志...")
         time.sleep(sleep_count + 1)
         sleep += 1
 
@@ -150,6 +150,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         development_info = summary_pro.invoke(
             f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{development_info}"
         ).content.strip()
+
+        logger.info("压缩开发日志成功")
+
         with open(
             f"./dist/{config['PROJECT_NAME']}/development_log.md", "w+", encoding="utf-8"
         ) as f:
