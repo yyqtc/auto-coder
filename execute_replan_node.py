@@ -104,9 +104,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
         except Exception as e:
             logger.error(f"读取需求文档失败: {e}")            
-            return "todo", ""
+            return ("todo", "")
 
-        return "todo", todo
+        return ("todo", todo)
 
     async def read_past_steps():
         past_steps = state.get("past_steps", [])
@@ -123,7 +123,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
         logger.info(f"开发成果: \n{past_steps_content}")
 
-        return "past_steps_content", past_steps_content
+        return ("past_steps_content", past_steps_content)
 
     async_tasks = [read_past_steps(), read_todo_content()]
     async_results = await asyncio.gather(*async_tasks)
