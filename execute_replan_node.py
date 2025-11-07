@@ -134,6 +134,8 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     while not os.path.exists(f"./dist/{config['PROJECT_NAME']}/development_log.md"):
         if sleep_count >= 3:
             break
+        
+        print(f"第{sleep_count + 1}次尝试读取开发日志...")
         time.sleep(sleep_count + 1)
         sleep += 1
 
