@@ -115,6 +115,10 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         project_status = analyze_what_to_do(count=0, past_steps_content=past_steps_content, plan=plan)
         if project_status != "分析失败！" and project_status != "执行失败！":
             break
+        if len(project_status) > config["SUMMARY_MAX_LENGTH"]:
+            project_status = summary_pro.invoke(f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{project_status}").content.strip()
+            with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "w", encoding="utf-8") as f:
+                f.write(project_status)
 
         analysis_count += 1
     
