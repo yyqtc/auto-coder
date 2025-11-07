@@ -44,9 +44,9 @@ def _init_agent():
 
     return agent
 
+agent = _init_agent()
 
 async def execute_node(state: PlanExecute) -> PlanExecute:
-    agent = _init_agent()
 
     if not state.get("plan") or len(state["plan"]) == 0:
         logger.error("计划列表为空，无法执行任务")
