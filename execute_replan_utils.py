@@ -67,10 +67,10 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         {plan}
 
         结合以上信息，检查现在项目中的代码，是否开发团队已经实现了他们描述的功能以及开发的代码是否存在问题。
-        将你的结论以markdown格式输出到development_log.md文件中。
 
         注意！
         你不允许对所在目录的父目录进行写入操作！
+        请不要产生任何文件！
     """
     if count > 0:
         opinion = ""

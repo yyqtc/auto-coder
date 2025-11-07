@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-config = json.load(open("config.json", encoding="utf-8"))
+config = json.load(open("config.json", 'r', encoding="utf-8"))
 
 _model = ChatOpenAI(
     model="qwen-max",
@@ -89,35 +89,52 @@ agent = _prompt | _model.with_structured_output(Act)
 async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     logger.info("正在根据当前开发结果调整计划...")
 
-    todo = ""
-    try:
-        with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
-            todo = f.read()
-            if len(todo) > config["SUMMARY_MAX_LENGTH"]:
-                todo = summary_pro.invoke(
-                    f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}"
-                ).content.strip()
+    async def read_todo_content():
+        todo = ""
+        try:
+            with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
+                todo = f.read()
+                if len(todo) > config["SUMMARY_MAX_LENGTH"]:
+                    todo = await summary_pro.ainvoke(
+                        f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}"
+                    ).content.strip()
 
-    except Exception as e:
-        return {"response": REQUIREMENT_READ_FAIL_MESSAGE}
+        except Exception as e:
+            return {"response": REQUIREMENT_READ_FAIL_MESSAGE}
+
+        return "todo", todo
 
     plan = state.get("plan", [])
 
     plan = "\n".join(plan)
 
-    past_steps = state.get("past_steps", [])
+    async def read_past_steps():
+        past_steps = state.get("past_steps", [])
+        past_steps_content = ""
+        for past_step in past_steps:
+            step, response = past_step
+            past_steps_content += f"步骤：{step}\n响应：{response}\n\n"
+
+        if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
+            past_steps_content = await summary_pro.ainvoke(
+                f"请适当总结项目开发日志，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目开发日志内容如下：\n{past_steps_content}"
+            ).content.strip()
+            past_steps = [("过去一系列任务摘要", past_steps_content)]
+
+        logger.info(f"开发成果: \n{past_steps_content}")
+
+        return "past_steps_content", past_steps_content
+
+    async_tasks = [read_past_steps(), read_todo_content()]
+    async_results = asyncio.gather(*async_tasks)
+
     past_steps_content = ""
-    for past_step in past_steps:
-        step, response = past_step
-        past_steps_content += f"步骤：{step}\n响应：{response}\n\n"
-
-    if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
-        past_steps_content = summary_pro.invoke(
-            f"请适当总结项目开发日志，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目开发日志内容如下：\n{past_steps_content}"
-        ).content.strip()
-        past_steps = [("过去一系列任务摘要", past_steps_content)]
-
-    logger.info(f"开发成果: \n{past_steps_content}")
+    todo = ""
+    for key, result in async_results:
+        if key == "past_steps_content":
+            past_steps_content = result
+        elif key == "todo":
+            todo = result
 
     analysis_count = 0
     project_status = ""
@@ -129,18 +146,6 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             break
 
         analysis_count += 1
-
-    sleep_count = 0
-    while not os.path.exists(f"./dist/{config['PROJECT_NAME']}/development_log.md"):
-        if sleep_count >= 3:
-            break
-        
-        logger.info(f"第{sleep_count + 1}次尝试读取开发日志...")
-        time.sleep(sleep_count + 1)
-        sleep += 1
-
-    if sleep_count == 3:
-        return {"response": DEVELOPMENT_LOG_NOT_EXISTS}
 
     development_info = ""
     with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "r", encoding="utf-8") as f:
