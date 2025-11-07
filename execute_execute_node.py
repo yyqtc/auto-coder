@@ -74,8 +74,8 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
         logger.error("计划列表为空，无法执行任务")
         return {"response": "计划列表为空，无法执行任务"}
 
-    tasks = state["plan"][:5]
-    state["plan"] = state["plan"][5:]
+    tasks = state["plan"][:2]
+    state["plan"] = state["plan"][2:]
     tasks_str = "\n".join(tasks)
     logger.info(f"开发团队正在完成任务：\n{tasks_str}...")
     formatted_task = f"""
