@@ -131,18 +131,18 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
                 development_info = summary_pro.invoke(
                     f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{development_info}"
                 ).content.strip()
-                f.write(project_status)
+                f.write(development_info)
 
         analysis_count += 1
 
-    logger.info(f"项目实际状况: \n{project_status}")
+    logger.info(f"项目实际状况: \n{development_info}")
 
     result = await agent.ainvoke(
         {
             "todo": todo,
             "plan": plan,
             "past_steps": past_steps_content,
-            "project_status": project_status,
+            "project_status": development_info,
         }
     )
 
