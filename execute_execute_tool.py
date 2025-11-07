@@ -29,15 +29,14 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
     """
     try:
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        base_command = f"cd {project_path}/dist/{config['PROJECT_NAME']}"
         full_command = ""
         if env_vars:
             env_exports = " ".join(
                 [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
             )
-            full_command = f"{base_command} && {env_exports} && {script_command}"
+            full_command = f"{env_exports} && {script_command}"
         else:
-            full_command = f"{base_command} && {script_command}"
+            full_command = script_command
 
         result = subprocess.run(
             ["bash", "-c", full_command],
@@ -103,6 +102,8 @@ def code_professional(prompt: str) -> str:
 
     logger.info("use code_professional tool")
     logger.info(f"我收到的命令是: {prompt}")
+
+    prompt = f"{prompt}\n\n注意！\n所有操作只能在todo/{config["PROJECT_NAME"]}和dist/{config["PROJECT_NAME"]}文件夹下面进行！你不被允许在其他文件夹下进行读写修改创建删除执行等操作！"
 
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
