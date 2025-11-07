@@ -197,8 +197,9 @@ def analyze_what_to_do():
 
     development_log = ""
     development_log_file = f"./dist/{config['PROJECT_NAME']}/development_log.md"
-    with open(development_log_file, "r", encoding="utf-8") as f:
-        development_log = f.read()
+    if os.path.exists(development_log_file):
+        with open(development_log_file, "r", encoding="utf-8") as f:
+            development_log = f.read()
 
     if len(development_log) > 0:
         prompt += f"""
