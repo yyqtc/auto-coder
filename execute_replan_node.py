@@ -89,6 +89,9 @@ agent = _prompt | _model.with_structured_output(Act)
 async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     logger.info("正在根据当前开发结果调整计划...")
 
+    plan = state.get("plan", [])
+    plan = "\n".join(plan)
+
     async def read_todo_content():
         todo = ""
         try:
@@ -104,10 +107,6 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             return "todo", ""
 
         return "todo", todo
-
-    plan = state.get("plan", [])
-
-    plan = "\n".join(plan)
 
     async def read_past_steps():
         past_steps = state.get("past_steps", [])
@@ -131,7 +130,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
     past_steps_content = ""
     todo = ""
-    for key, result in async_results:
+    for (key, result) in async_results:
         if key == "past_steps_content":
             past_steps_content = result
         elif key == "todo":
