@@ -124,7 +124,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
         return ("past_steps_content", (past_steps, past_steps_content))
 
-    async_tasks = [read_past_steps(), read_todo_content()]
+    async_tasks = [read_past_steps(past_steps), read_todo_content()]
     async_results = await asyncio.gather(*async_tasks)
 
     past_steps_content = ""
