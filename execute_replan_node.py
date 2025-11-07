@@ -101,7 +101,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
                     todo = summary_pro.invoke(
                         f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}"
                     ).content.strip()
-                    
+
         except Exception as e:
             logger.error(f"读取需求文档失败: {e}")
             # 如果是在 await 过程中发生异常，确保协程被清理
@@ -122,8 +122,6 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             ).content.strip()
             past_steps = [("过去一系列任务摘要", past_steps_content)]
 
-        logger.info(f"开发成果: \n{past_steps_content}")
-
         return ("past_steps_content", past_steps_content)
 
     async_tasks = [read_past_steps(), read_todo_content()]
@@ -136,6 +134,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             past_steps_content = result
         elif key == "todo":
             todo = result
+
+    logger.info(f"开发成果: \n{past_steps_content}")
+    
 
     analysis_count = 0
     project_status = ""
