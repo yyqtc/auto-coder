@@ -109,8 +109,8 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
         return ("todo", todo)
 
-    async def read_past_steps():
-        past_steps = state.get("past_steps", [])
+    past_steps = state.get("past_steps", [])
+    async def read_past_steps(past_steps):
         past_steps_content = ""
         for past_step in past_steps:
             step, response = past_step
@@ -122,7 +122,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             ).content.strip()
             past_steps = [("过去一系列任务摘要", past_steps_content)]
 
-        return ("past_steps_content", past_steps_content)
+        return ("past_steps_content", (past_steps, past_steps_content))
 
     async_tasks = [read_past_steps(), read_todo_content()]
     async_results = await asyncio.gather(*async_tasks)
@@ -131,7 +131,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     todo = ""
     for (key, result) in async_results:
         if key == "past_steps_content":
-            past_steps_content = result
+            past_steps, past_steps_content = result
         elif key == "todo":
             todo = result
 
