@@ -149,24 +149,24 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
         analysis_count += 1
 
-    development_info = ""
-    if len(development_info) > config["SUMMARY_MAX_LENGTH"]:
-        development_info = summary_pro.invoke(
-            f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{development_info}"
+    project_status = ""
+    if len(project_status) > config["SUMMARY_MAX_LENGTH"]:
+        project_status = summary_pro.invoke(
+            f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{project_status}"
         ).content.strip()
         logger.info("压缩开发日志成功")
     
     with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "w+", encoding="utf-8") as f:
-        f.write(development_info)
+        f.write(project_status)
 
-    logger.info(f"项目实际状况: \n{development_info}")
+    logger.info(f"项目实际状况: \n{project_status}")
 
     result = await agent.ainvoke(
         {
             "todo": todo,
             "plan": plan,
             "past_steps": past_steps_content,
-            "project_status": development_info,
+            "project_status": project_status,
         }
     )
 
