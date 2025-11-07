@@ -2,7 +2,11 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from execute_custom_type import Plan, Response, Act, PlanExecute
 from execute_replan_utils import analyze_what_to_do
-from constants import REQUIREMENT_READ_FAIL_MESSAGE, UNKNOWN_ERROR_MESSAGE, DEVELOPMENT_LOG_NOT_EXISTS
+from constants import (
+    REQUIREMENT_READ_FAIL_MESSAGE,
+    UNKNOWN_ERROR_MESSAGE,
+    DEVELOPMENT_LOG_NOT_EXISTS,
+)
 
 import os
 import json
@@ -131,18 +135,15 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         if sleep_count >= 3:
             break
         time.sleep(sleep_count + 1)
+        sleep += 1
 
-    if sleep_count:
-        return {
-            "response": DEVELOPMENT_LOG_NOT_EXISTS
-        }
+    if sleep_count == 3:
+        return {"response": DEVELOPMENT_LOG_NOT_EXISTS}
 
     development_info = ""
-    with open(
-        f"./dist/{config['PROJECT_NAME']}/development_log.md", "r", encoding="utf-8"
-    ) as f:
+    with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "r", encoding="utf-8") as f:
         development_info = f.read()
-    
+
     if len(development_info) > config["SUMMARY_MAX_LENGTH"]:
         development_info = summary_pro.invoke(
             f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{development_info}"
