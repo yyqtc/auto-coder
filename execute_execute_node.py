@@ -74,10 +74,15 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
         logger.error("计划列表为空，无法执行任务")
         return {"response": "计划列表为空，无法执行任务"}
 
-    task = state["plan"].pop(0)
-    logger.info(f"开发团队正在完成任务：{task}...")
+    tasks = state["plan"][:5]
+    state["plan"] = state["plan"][5:]
+    logger.info(f"开发团队正在完成任务：\n{'\n'.join(tasks)}...")
     formatted_task = f"""
-    完成这个任务：{task}。不要做和{task}无关的内容。
+    完成这系列任务：
+    {"\n".join(tasks)}。
+    
+    注意！
+    不要做和任务无关的事情！
     """
 
     agent_response = await agent.ainvoke(
