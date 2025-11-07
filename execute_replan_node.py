@@ -99,7 +99,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
                         f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}"
                     ).content.strip()
 
-        except Exception as e:`n            logger.error(f"读取需求文档失败: {e}")`n            return "todo", ""
+        except Exception as e:
+            logger.error(f"读取需求文档失败: {e}")            
+            return "todo", ""
 
         return "todo", todo
 
