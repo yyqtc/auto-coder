@@ -151,8 +151,6 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
             full_command = f"{base_command} && {env_exports} && {script_command}"
         else:
             full_command = f"{base_command} && {script_command}"
-
-        full_command += "\n\n 注意！\n你不允许对所在目录的父目录进行操作！"
         
         result = subprocess.run(
             ["bash", "-c", full_command],
@@ -189,8 +187,6 @@ def analyze_what_to_do():
     if len(opinion) > 0:
         prompt += f"""
 
-        注意！
-        分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
         审核员意见如下：
         {opinion}
         """
@@ -208,6 +204,8 @@ def analyze_what_to_do():
         开发日志如下：
         {development_log}
         """
+
+    prompt += "\n\n注意！分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。\n你不允许对所在目录的父目录进行写入操作！"
 
     if config["MOCK"]:
         return _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)

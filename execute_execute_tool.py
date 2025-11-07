@@ -37,8 +37,6 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
             full_command = f"{base_command} && {env_exports} && {script_command}"
         else:
             full_command = f"{base_command} && {script_command}"
-
-        full_command += "\n\n 注意！\n你不允许对所在目录的父目录进行操作！"
         
         result = subprocess.run(
             ["bash", "-c", full_command],
@@ -104,8 +102,6 @@ def code_professional(prompt: str) -> str:
 
     logger.info("use code_professional tool")
     logger.info(f"我收到的命令是: {prompt}")
-
-    prompt += "\n\n注意！代码分析结果统一按照markdown格式输出到当前文件夹下的analysis_result.md文件中！"
 
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force '{prompt}'", env_vars=env_vars)

@@ -29,12 +29,6 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         # 如果需要在命令前设置环境变量，可以在命令中导出
         base_command = f"cd {project_path}/dist/{config['PROJECT_NAME']}"
 
-        script = f"""
-            {script_command}
-
-            注意！
-            你不允许对所在目录的父目录进行操作！
-        """
         if env_vars:
             env_exports = ' '.join([f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()])
             full_command = f"{base_command} && {env_exports} && {script_command}"
@@ -74,6 +68,9 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
 
         结合以上信息，检查现在项目中的代码，是否开发团队已经实现了他们描述的功能以及开发的代码是否存在问题。
         将你的结论以markdown格式输出到development_log.md文件中。
+
+        注意！
+        你不允许对所在目录的父目录进行写入操作！
     """
     if count > 0:
         opinion = ""
@@ -85,7 +82,6 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         if len(opinion) > 0:
             prompt += f"""
 
-            注意！
             分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
             审核员意见如下：
             {opinion}
