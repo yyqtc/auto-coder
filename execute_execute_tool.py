@@ -110,7 +110,7 @@ def code_professional(prompt: str) -> str:
         )
     else:
         execute_result = _execute_script_subprocess(
-            f"{config['CURSOR_PATH']} -p --force '@../../todo/{config["PROJECT_NAME"]} {prompt}'",
+            f"{config['CURSOR_PATH']} -p --force '@../../todo/{config['PROJECT_NAME']} {prompt}'",
             env_vars=env_vars,
         )
 
