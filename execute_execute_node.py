@@ -76,10 +76,11 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
 
     tasks = state["plan"][:5]
     state["plan"] = state["plan"][5:]
-    logger.info(f"开发团队正在完成任务：\n{'\n'.join(tasks)}...")
+    tasks_str = "\n".join(tasks)
+    logger.info(f"开发团队正在完成任务：\n{tasks_str}...")
     formatted_task = f"""
     完成这系列任务：
-    {"\n".join(tasks)}。
+    {tasks_str}。
     
     注意！
     不要做和任务无关的事情！
@@ -90,7 +91,7 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
     )
 
     return {
-        "past_steps": [(task, agent_response["messages"][-1].content)],
+        "past_steps": [(tasks_str, agent_response["messages"][-1].content)],
     }
 
 

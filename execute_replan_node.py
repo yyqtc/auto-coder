@@ -115,7 +115,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         past_steps_content = ""
         for past_step in past_steps:
             step, response = past_step
-            past_steps_content += f"步骤：{step}\n响应：{response}\n\n"
+            past_steps_content += f"步骤：\n{step}\n响应：{response}\n\n"
 
         if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
             past_steps_content = summary_pro.invoke(
