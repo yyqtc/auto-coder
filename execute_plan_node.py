@@ -145,10 +145,12 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
         if user_input == "y":
             os.remove(f"./todo/{config['PROJECT_NAME']}/todo.md")
 
-    if os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list.md"):
+    if count == 0 and os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list.md"):
         user_input = input(f"todo_list.md文件已存在，是否删除？(y/n): ")
         if user_input == "y":
             os.remove(f"./todo/{config['PROJECT_NAME']}/todo_list.md")
+    elif count > 0 and os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo_list.md"):
+        os.remove(f"./todo/{config['PROJECT_NAME']}/todo_list.md")
 
     logger.info(f"进行第{count + 1}轮需求分析-开发工作")
 
