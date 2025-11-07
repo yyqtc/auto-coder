@@ -148,20 +148,14 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         analysis_count += 1
 
     development_info = ""
-    with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "r", encoding="utf-8") as f:
-        development_info = f.read()
-
     if len(development_info) > config["SUMMARY_MAX_LENGTH"]:
         development_info = summary_pro.invoke(
             f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{development_info}"
         ).content.strip()
-
         logger.info("压缩开发日志成功")
-
-        with open(
-            f"./dist/{config['PROJECT_NAME']}/development_log.md", "w+", encoding="utf-8"
-        ) as f:
-            f.write(development_info)
+    
+    with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "w+", encoding="utf-8") as f:
+        f.write(development_info)
 
     logger.info(f"项目实际状况: \n{development_info}")
 
