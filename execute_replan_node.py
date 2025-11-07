@@ -149,7 +149,6 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
         analysis_count += 1
 
-    project_status = ""
     if len(project_status) > config["SUMMARY_MAX_LENGTH"]:
         project_status = summary_pro.invoke(
             f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{project_status}"
