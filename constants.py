@@ -47,3 +47,6 @@ REQUIREMENT_READ_FAIL_MESSAGE = "需求读取失败！"
 
 # 未知错误时的返回值
 UNKNOWN_ERROR_MESSAGE = "未知错误！"
+
+# 读取开发日志失败的信息
+DEVELOPMENT_LOG_NOT_EXISTS = "读取开发日志失败！"

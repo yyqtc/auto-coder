@@ -2,9 +2,11 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from execute_custom_type import Plan, Response, Act, PlanExecute
 from execute_replan_utils import analyze_what_to_do
-from constants import REQUIREMENT_READ_FAIL_MESSAGE, UNKNOWN_ERROR_MESSAGE
+from constants import REQUIREMENT_READ_FAIL_MESSAGE, UNKNOWN_ERROR_MESSAGE, DEVELOPMENT_LOG_NOT_EXISTS
 
+import os
 import json
+import time
 import logging
 import asyncio
 
@@ -123,6 +125,17 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             break
 
         analysis_count += 1
+
+    sleep_count = 0
+    while not os.path.exists(f"./dist/{config['PROJECT_NAME']}/development_log.md"):
+        if sleep_count >= 3:
+            break
+        time.sleep(sleep_count + 1)
+
+    if sleep_count:
+        return {
+            "response": DEVELOPMENT_LOG_NOT_EXISTS
+        }
 
     development_info = ""
     with open(
