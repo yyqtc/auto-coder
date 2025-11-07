@@ -10,10 +10,8 @@ import asyncio
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -23,15 +21,16 @@ qwen_model = ChatOpenAI(
     model="qwen-plus",
     openai_api_key=config["QWEN_API_KEY"],
     openai_api_base=config["QWEN_API_BASE"],
-    temperature=0.7
+    temperature=0.7,
 )
 
 dp_model = ChatOpenAI(
     model="deepseek-chat",
     openai_api_key=config["DEEPSEEK_API_KEY"],
     openai_api_base=config["DEEPSEEK_API_BASE"],
-    temperature=0.4
+    temperature=0.4,
 )
+
 
 @tool
 def write_opinion_file(content: str) -> str:
@@ -40,7 +39,7 @@ def write_opinion_file(content: str) -> str:
 
     Args:
         content: 文件的内容
-    
+
     Returns:
         返回字符串“文件写入成功”
     """
@@ -50,6 +49,7 @@ def write_opinion_file(content: str) -> str:
 
     return "文件写入成功"
 
+
 @tool
 def read_opinion_file() -> str:
     """
@@ -57,7 +57,7 @@ def read_opinion_file() -> str:
 
     Args:
         无
-    
+
     Returns:
         如果文件不存在，返回“文件不存在”
         如果文件存在，返回文件的内容
@@ -65,9 +65,10 @@ def read_opinion_file() -> str:
     logger.info("use read_opinion_file tool")
     if not os.path.exists(f"./opinion/{config['PROJECT_NAME']}.md"):
         return "文件不存在"
-    
+
     with open(f"./opinion/{config['PROJECT_NAME']}.md", "r", encoding="utf-8") as f:
         return f.read()
+
 
 @tool
 def read_todo_content() -> str:
@@ -76,7 +77,7 @@ def read_todo_content() -> str:
 
     Args:
         无
-    
+
     Returns:
         如果文件不存在，返回“文件不存在”
         如果文件存在，返回文件的内容
@@ -84,9 +85,10 @@ def read_todo_content() -> str:
     logger.info("use read_todo_content tool")
     if not os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo.md"):
         return "文件不存在"
-    
+
     with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
         return f.read()
+
 
 @tool
 def read_development_log() -> str:
@@ -95,7 +97,7 @@ def read_development_log() -> str:
 
     Args:
         无
-    
+
     Returns:
         如果文件不存在，返回“文件不存在”
         如果文件存在，返回文件的内容

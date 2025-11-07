@@ -6,21 +6,20 @@ import subprocess
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
-config = json.load(open("config.json", 'r', encoding="utf-8"))
+config = json.load(open("config.json", "r", encoding="utf-8"))
 
 project_path = os.path.abspath(os.path.dirname(__file__))
+
 
 def _execute_script_subprocess(script_command, env_vars=None) -> str:
     """
     使用 subprocess 模块执行脚本（推荐）
-    
+
     Args:
         script_command: 要执行的命令字符串
         env_vars: 要传递的环境变量字典，例如 {"CURSOR_API_KEY": "..."}
@@ -30,18 +29,20 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         base_command = f"cd {project_path}/dist/{config['PROJECT_NAME']}"
 
         if env_vars:
-            env_exports = ' '.join([f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()])
+            env_exports = " ".join(
+                [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+            )
             full_command = f"{base_command} && {env_exports} && {script_command}"
         else:
             full_command = f"{base_command} && {script_command}"
-        
+
         result = subprocess.run(
             ["bash", "-c", full_command],
             capture_output=True,
             text=True,
-            encoding='utf-8',
-            errors='replace',  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
-            check=True
+            encoding="utf-8",
+            errors="replace",  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
+            check=True,
         )
         logger.info("执行成功！")
         logger.info(f"输出: {result.stdout}")
@@ -54,10 +55,9 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         logger.error(f"详细信息: {e}")
         return "执行失败！"
 
+
 def analyze_what_to_do(count=0, past_steps_content="", plan=""):
-    env_vars = {
-        "CURSOR_API_KEY": config["CURSOR_API_KEY"]
-    }
+    env_vars = {"CURSOR_API_KEY": config["CURSOR_API_KEY"]}
 
     prompt = f"""
         我们的开发团队已经完成了以下步骤并取得了一些成果：
@@ -88,6 +88,10 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
             """
 
     if config["MOCK"]:
-        return _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars)
+        return _execute_script_subprocess(
+            f"python {config['SIM_CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars
+        )
     else:
-        return _execute_script_subprocess(f"{config['CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars)
+        return _execute_script_subprocess(
+            f"{config['CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars
+        )

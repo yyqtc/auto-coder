@@ -8,14 +8,13 @@ import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
 config = json.load(open("./config.json", "r", encoding="utf-8"))
+
 
 def init_agent():
 
@@ -23,29 +22,26 @@ def init_agent():
         model="qwen-plus",
         openai_api_key=config["QWEN_API_KEY"],
         openai_api_base=config["QWEN_API_BASE"],
-        temperature=0.7
+        temperature=0.7,
     )
 
     _prompt = f"""
         你是一位非常负责的审核员，我需要你根据需求文档和项目开发日志，检查项目是否实现了需求文档中的所有功能。
     """
 
-    agent = create_agent(
-        model=_model,
-        system_prompt=_prompt,
-        tools=tools,
-        response_format=Act
-    )
+    agent = create_agent(model=_model, system_prompt=_prompt, tools=tools, response_format=Act)
 
     return agent
 
+
 agent = init_agent()
+
 
 async def review_node(state: ActionReview) -> ActionReview:
     count = 0
     if "count" in state:
         count = state["count"]
-    
+
     logger.info("正在审核项目代码是否符合使用文档的说明...")
 
     if count == 0:
@@ -60,38 +56,28 @@ async def review_node(state: ActionReview) -> ActionReview:
         2. 适当根据项目开发日志和需求文档，提出改进意见。
         3. 你输出的意见中不要包括图片文件或是图片的base64编码，不要包括任何与项目无关的内容。
         """
-        response = await agent.ainvoke({
-            "messages": [("user", user_prompt)]
-        })
+        response = await agent.ainvoke({"messages": [("user", user_prompt)]})
 
         response = response.get("structured_response", None)
-        
+
         if response is None:
             logger.warning("retry review_node - structured_response is None")
             # 避免无限递归，最多重试3次
             retry_count = state.get("_retry_count", 0)
             if retry_count >= 3:
                 logger.error("review_node 重试次数过多，返回错误响应")
-                return {
-                    "response": "审核失败：无法获取结构化响应"
-                }
+                return {"response": "审核失败：无法获取结构化响应"}
             new_state = {**state, "_retry_count": retry_count + 1}
             return await review_node(new_state)
 
         if isinstance(response.action, Action):
-            return {
-                "count": response.action.count
-            }
-        
+            return {"count": response.action.count}
+
         elif isinstance(response.action, Response):
-            return {
-                "response": response.action.response
-            }
+            return {"response": response.action.response}
         else:
             logger.error(f"未知的action类型: {type(response.action)}")
-            return {
-                "response": "审核失败：未知的响应类型"
-            }
+            return {"response": "审核失败：未知的响应类型"}
 
     else:
         user_prompt = f"""
@@ -107,9 +93,7 @@ async def review_node(state: ActionReview) -> ActionReview:
 。      3. 可以容忍优先级低的改进建议不被实现，但是中高优先级的改进建议必须被实现。
         4. 你输出的意见中不要包括图片文件或是图片的base64编码，不要包括任何与项目无关的内容。
         """
-        response = await agent.ainvoke({
-            "messages": [("user", user_prompt)]
-        })
+        response = await agent.ainvoke({"messages": [("user", user_prompt)]})
 
         response = response.get("structured_response", None)
         if response is None:
@@ -118,24 +102,15 @@ async def review_node(state: ActionReview) -> ActionReview:
             retry_count = state.get("_retry_count", 0)
             if retry_count >= 3:
                 logger.error("review_node 重试次数过多，返回错误响应")
-                return {
-                    "response": "审核失败：无法获取结构化响应"
-                }
+                return {"response": "审核失败：无法获取结构化响应"}
             new_state = {**state, "_retry_count": retry_count + 1}
             return await review_node(new_state)
-        
+
         if isinstance(response.action, Action):
-            return {
-                "count": response.action.count
-            }
-        
+            return {"count": response.action.count}
+
         elif isinstance(response.action, Response):
-            return {
-                "response": response.action.response
-            }
+            return {"response": response.action.response}
         else:
             logger.error(f"未知的action类型: {type(response.action)}")
-            return {
-                "response": "审核失败：未知的响应类型"
-            }
-    
+            return {"response": "审核失败：未知的响应类型"}

@@ -10,10 +10,8 @@ import asyncio
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -23,27 +21,30 @@ _model = ChatOpenAI(
     model="qwen-max",
     openai_api_key=config["QWEN_API_KEY"],
     openai_api_base=config["QWEN_API_BASE"],
-    temperature=0.7
+    temperature=0.7,
 )
 
-summary_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        f"""
+summary_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            f"""
         你是一位非常专业的总结专家，善于抓住项目日志中的重点内容。请把项目日志的字数控制在{config["SUMMARY_MAX_LENGTH"]}个token以内。
         注意！
         尽量保留日志中的重要信息，适当压缩其他信息，不要遗漏重要信息！
-        """
-    ),
-    ("user", "{input}")
-])
+        """,
+        ),
+        ("user", "{input}"),
+    ]
+)
 
 summary_pro = summary_prompt | _model
 
-_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
+_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """
         你是一位非常苛刻的需求分析专家，善于根据计划执行情况分析当前计划是否符合客户需求。
 
         我们的客户的需求是：
@@ -71,9 +72,10 @@ _prompt = ChatPromptTemplate.from_messages([
         11. 答案请以JSON格式输出，包含action字段，action字段应该包含response字段，response字段类型str！
         12. 你只允许在计划中补充步骤，不要删除原有的步骤！
         13. 已经执行的步骤不要再次执行！
-        """
-    )
-])
+        """,
+        )
+    ]
+)
 
 agent = _prompt | _model.with_structured_output(Act)
 
@@ -86,17 +88,17 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
             todo = f.read()
             if len(todo) > config["SUMMARY_MAX_LENGTH"]:
-                todo = summary_pro.invoke(f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}").content.strip()
+                todo = summary_pro.invoke(
+                    f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}"
+                ).content.strip()
 
     except Exception as e:
-        return {
-            "response": REQUIREMENT_READ_FAIL_MESSAGE
-        }
+        return {"response": REQUIREMENT_READ_FAIL_MESSAGE}
 
     plan = state.get("plan", [])
 
     plan = "\n".join(plan)
-    
+
     past_steps = state.get("past_steps", [])
     past_steps_content = ""
     for past_step in past_steps:
@@ -104,51 +106,59 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         past_steps_content += f"步骤：{step}\n响应：{response}\n\n"
 
     if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
-        past_steps_content = summary_pro.invoke(f"请适当总结项目开发日志，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目开发日志内容如下：\n{past_steps_content}").content.strip()
+        past_steps_content = summary_pro.invoke(
+            f"请适当总结项目开发日志，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目开发日志内容如下：\n{past_steps_content}"
+        ).content.strip()
         past_steps = [("过去一系列任务摘要", past_steps_content)]
 
     logger.info(f"开发成果: \n{past_steps_content}")
-    
+
     analysis_count = 0
     project_status = ""
     while analysis_count < 3:
-        project_status = analyze_what_to_do(count=0, past_steps_content=past_steps_content, plan=plan)
+        project_status = analyze_what_to_do(
+            count=0, past_steps_content=past_steps_content, plan=plan
+        )
         if project_status != "分析失败！" and project_status != "执行失败！":
             break
         if len(project_status) > config["SUMMARY_MAX_LENGTH"]:
-            project_status = summary_pro.invoke(f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{project_status}").content.strip()
-            with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "w", encoding="utf-8") as f:
+            project_status = summary_pro.invoke(
+                f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{project_status}"
+            ).content.strip()
+            with open(
+                f"./dist/{config['PROJECT_NAME']}/development_log.md", "w", encoding="utf-8"
+            ) as f:
                 f.write(project_status)
 
         analysis_count += 1
-    
+
     logger.info(f"项目实际状况: \n{project_status}")
 
-    result = await agent.ainvoke({
-        "todo": todo,
-        "plan": plan,
-        "past_steps": past_steps_content,
-        "project_status": project_status
-    })
+    result = await agent.ainvoke(
+        {
+            "todo": todo,
+            "plan": plan,
+            "past_steps": past_steps_content,
+            "project_status": project_status,
+        }
+    )
 
     logger.info("分析和重新规划结束")
 
     if isinstance(result.action, Response):
-        return {
-            "response": result.action.response
-        }
+        return {"response": result.action.response}
     elif isinstance(result.action, Plan):
-        return {
-            "plan": result.action.steps,
-            "past_steps": past_steps
-        }
+        return {"plan": result.action.steps, "past_steps": past_steps}
     else:
-        return {
-            "response": UNKNOWN_ERROR_MESSAGE
-        }
+        return {"response": UNKNOWN_ERROR_MESSAGE}
+
 
 if __name__ == "__main__":
-    asyncio.run(execute_replan_node({
-        "plan": ["创建一个Hello World程序"],
-        "past_steps": [("创建一个Hello World程序", "Hello World程序创建成功")]
-    }))
+    asyncio.run(
+        execute_replan_node(
+            {
+                "plan": ["创建一个Hello World程序"],
+                "past_steps": [("创建一个Hello World程序", "Hello World程序创建成功")],
+            }
+        )
+    )

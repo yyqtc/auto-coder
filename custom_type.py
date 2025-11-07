@@ -4,15 +4,19 @@ from typing_extensions import TypedDict
 
 from typing import Union
 
+
 class ActionReview(TypedDict):
     count: int
     response: str
 
+
 class Action(BaseModel):
     count: int = Field(description="执行次数")
 
+
 class Response(BaseModel):
     response: str
+
 
 class Act(BaseModel):
     action: Union[Action, Response] = Field(

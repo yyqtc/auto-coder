@@ -17,6 +17,7 @@ args = parser.parse_args()
 
 count = args.count
 
+
 def _init_project_structure():
     os.makedirs("experiment", exist_ok=True)
     os.makedirs("history", exist_ok=True)
@@ -24,11 +25,13 @@ def _init_project_structure():
     os.makedirs("todo", exist_ok=True)
     os.makedirs("dist", exist_ok=True)
 
+
 def _should_end(state: ActionReview):
     if "response" in state and len(state["response"]) > 0:
         return END
     else:
         return "execute_graph"
+
 
 def _init_graph():
     workflow = StateGraph[ActionReview, None, ActionReview, ActionReview](ActionReview)
@@ -45,23 +48,27 @@ def _init_graph():
 
     return app
 
+
 app = _init_graph()
+
 
 async def main(count=0):
     _init_project_structure()
 
     if not os.path.exists(f"./todo/{config['PROJECT_NAME']}"):
         print("项目需求不存在")
-        return 
+        return
 
     recursion_limit = config.get("RECURSION_LIMIT", 50)
-    result = await app.ainvoke({
-        "count": count,
-    }, {
-        "recursion_limit": recursion_limit
-    })
+    result = await app.ainvoke(
+        {
+            "count": count,
+        },
+        {"recursion_limit": recursion_limit},
+    )
 
     print("result: ", result.get("response", "响应为空"))
+
 
 if __name__ == "__main__":
     asyncio.run(main(count))

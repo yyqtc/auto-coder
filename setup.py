@@ -1,6 +1,7 @@
 """
 Auto-Coder 安装脚本
 """
+
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -31,4 +32,3 @@ setup(
     python_requires=">=3.8",
     install_requires=requirements,
 )
-

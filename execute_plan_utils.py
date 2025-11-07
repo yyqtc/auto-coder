@@ -8,39 +8,38 @@ import subprocess
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
-config = json.load(open("config.json", 'r', encoding="utf-8"))
+config = json.load(open("config.json", "r", encoding="utf-8"))
 
 project_path = os.path.abspath(os.path.dirname(__file__))
+
 
 def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
     image_map = {}
     image_count = 0
 
     for rel in doc.part.rels.values():
-        if 'image' in rel.reltype:
+        if "image" in rel.reltype:
             image_count += 1
             image_data = rel.target_part.blob
             ext = rel.target_part.partname.split("/")[-1].split(".")[-1].lower()
             if ext not in ["png", "jpg", "jpeg", "gif", "bmp", "webp"]:
                 ext = "jpg"
-            
+
             image_name = f"img_{image_count}.{ext}"
             image_path = os.path.join(config["MD_DIR_PATH"], md_project_name, "img", image_name)
             with open(image_path, "wb") as f:
                 f.write(image_data)
-            image_map[rel.rId] = f'./img/{image_name}'
+            image_map[rel.rId] = f"./img/{image_name}"
 
     image_count = 0
     full_text = ""
 
-    parent = doc.element.body if hasattr(doc, 'element') else doc
+    parent = doc.element.body if hasattr(doc, "element") else doc
     markdown_struct = []
     for child in parent.getchildren():
         if child.tag.endswith("}p"):
@@ -54,7 +53,7 @@ def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
         for row in table.rows:
             cells = [cell.text.strip().replace("\n", "<br>") for cell in row.cells]
             rows.append("| " + " | ".join(cells) + " |")
-        
+
         if len(rows) > 1:
             sep = "|" + "|".join([" --- "] * len(table.columns)) + "|"
             rows.insert(1, sep)
@@ -67,9 +66,11 @@ def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
             for child in run._element.getchildren():
                 if child.tag.endswith("}drawing") or child.tag.endswith("}pict"):
                     blips = child.xpath(".//*[local-name()='blip']")
-                    
+
                     if blips:
-                        rId = blips[0].get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed')
+                        rId = blips[0].get(
+                            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+                        )
                         if rId:
                             if rId in [r.rId for r in doc.part.rels.values()]:
                                 image_count += 1
@@ -79,7 +80,7 @@ def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
                 elif child.tag.endswith("}t"):
                     text = child.text or ""
                     para_content += text
-    
+
         paras.append(para_content)
 
     for item in markdown_struct:
@@ -89,6 +90,7 @@ def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
             full_text += tables.pop(0) + "\n\n"
 
     return full_text.strip()
+
 
 def convert_docx_to_markdown(docx_path: str) -> str:
     if not os.path.exists(docx_path):
@@ -104,9 +106,10 @@ def convert_docx_to_markdown(docx_path: str) -> str:
     with open(f"./todo/{config['PROJECT_NAME']}/{docx_name}/todo.md", "w+", encoding="utf-8") as f:
         f.write(_revert_docx_to_md(doc, f"./todo/{config['PROJECT_NAME']}/{docx_name}"))
 
+
 def convert_pdf_to_markdown(pdf_path: str) -> str:
     from PyPDF2 import PdfReader
-    
+
     import os
 
     if not os.path.exists(pdf_path) or not os.path.isfile(pdf_path):
@@ -118,26 +121,29 @@ def convert_pdf_to_markdown(pdf_path: str) -> str:
             reader = PdfReader(f)
             content = ""
             skipped_content_len = 0
-            
+
             # 读取所有页面内容
             for page_num in range(len(reader.pages)):
                 page = reader.pages[page_num]
                 page_content = page.extract_text()
                 content += page_content + "\n\n"
-                
+
         pdf_name = os.path.basename(pdf_path).split(".")[0]
         if not os.path.exists(f"./todo/{config['PROJECT_NAME']}/{pdf_name}"):
             os.makedirs(f"./todo/{config['PROJECT_NAME']}/{pdf_name}", exist_ok=True)
-        
-        with open(f"./todo/{config['PROJECT_NAME']}/{pdf_name}/todo.md", "w+", encoding="utf-8") as f:
+
+        with open(
+            f"./todo/{config['PROJECT_NAME']}/{pdf_name}/todo.md", "w+", encoding="utf-8"
+        ) as f:
             f.write(content)
 
     return "pdf文件转换为markdown文件成功"
 
+
 def _execute_script_subprocess(script_command, env_vars=None) -> str:
     """
     使用 subprocess 模块执行脚本（推荐）
-    
+
     Args:
         script_command: 要执行的命令字符串
         env_vars: 要传递的环境变量字典，例如 {"CURSOR_API_KEY": "..."}
@@ -147,18 +153,20 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         base_command = f"cd {project_path}/todo/{config['PROJECT_NAME']}"
         full_command = ""
         if env_vars:
-            env_exports = ' '.join([f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()])
+            env_exports = " ".join(
+                [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+            )
             full_command = f"{base_command} && {env_exports} && {script_command}"
         else:
             full_command = f"{base_command} && {script_command}"
-        
+
         result = subprocess.run(
             ["bash", "-c", full_command],
             capture_output=True,
             text=True,
-            encoding='utf-8',
-            errors='replace',  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
-            check=True
+            encoding="utf-8",
+            errors="replace",  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
+            check=True,
         )
         logger.info("执行成功！")
         logger.info(f"输出: {result.stdout}")
@@ -171,11 +179,10 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         logger.error(f"详细信息: {e}")
         return "执行失败！"
 
+
 def analyze_what_to_do():
-    env_vars = {
-        "CURSOR_API_KEY": config["CURSOR_API_KEY"]
-    }
-    
+    env_vars = {"CURSOR_API_KEY": config["CURSOR_API_KEY"]}
+
     prompt = "请综合分析目录下所有文件内容，以需求点的形式一一列举，以markdown格式写到本文件夹下的todo.md文件中。"
 
     opinion = ""
@@ -208,6 +215,11 @@ def analyze_what_to_do():
     prompt += "\n\n注意！分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。\n你不允许对所在目录的父目录进行写入操作！"
 
     if config["MOCK"]:
-        return _execute_script_subprocess(f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)
+        return _execute_script_subprocess(
+            f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'",
+            env_vars=env_vars,
+        )
     else:
-        return _execute_script_subprocess(f"{config['CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars)
+        return _execute_script_subprocess(
+            f"{config['CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars
+        )

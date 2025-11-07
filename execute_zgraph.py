@@ -13,20 +13,20 @@ import os
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
 config = json.load(open("./config.json", "r", encoding="utf-8"))
+
 
 def _should_end(state: PlanExecute):
     if "response" in state and state["response"]:
         return END
     else:
         return "execute_execute"
+
 
 def _init_graph():
     workflow = StateGraph[PlanExecute, None, PlanExecute, PlanExecute](PlanExecute)
@@ -35,21 +35,14 @@ def _init_graph():
     workflow.add_node("execute_execute", execute_node)
 
     workflow.add_edge(START, "execute_plan")
-    workflow.add_conditional_edges(
-        "execute_plan", 
-        _should_end,
-        ["execute_execute", END]
-    )
+    workflow.add_conditional_edges("execute_plan", _should_end, ["execute_execute", END])
     workflow.add_edge("execute_execute", "execute_replan")
-    workflow.add_conditional_edges(
-        "execute_replan",
-        _should_end,
-        ["execute_execute", END]
-    )
-    
+    workflow.add_conditional_edges("execute_replan", _should_end, ["execute_execute", END])
+
     app = workflow.compile()
 
     return app
+
 
 async def execute_zgraph(state: ActionReview) -> ActionReview:
     count = 0
@@ -65,25 +58,20 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
     logger.info(f"迭代次数：{recursion_limit}")
 
     try:
-        await app.ainvoke({
-            "input": f"开发轮数：{count}"
-        }, {
-            "recursion_limit": recursion_limit
-        })
+        await app.ainvoke({"input": f"开发轮数：{count}"}, {"recursion_limit": recursion_limit})
 
     except Exception as e:
         logger.error(f"执行计划失败: {e}")
         shutil.rmtree(f"./dist/{config['PROJECT_NAME']}")
         if os.path.exists(f"./history/{config['PROJECT_NAME']}"):
-            shutil.copytree(f"./history/{config['PROJECT_NAME']}", f"./dist/{config['PROJECT_NAME']}")
+            shutil.copytree(
+                f"./history/{config['PROJECT_NAME']}", f"./dist/{config['PROJECT_NAME']}"
+            )
 
-    return {
-        "count": count
-    }
+    return {"count": count}
+
 
 if __name__ == "__main__":
-    result = asyncio.run(execute_zgraph({
-        "count": 0
-    }))
+    result = asyncio.run(execute_zgraph({"count": 0}))
 
     print(result)

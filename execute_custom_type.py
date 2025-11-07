@@ -5,6 +5,7 @@ from typing import Union, List, Tuple, Annotated
 
 import operator
 
+
 # PlanExecute不需要校验
 class PlanExecute(TypedDict):
     input: str
@@ -13,13 +14,14 @@ class PlanExecute(TypedDict):
     response: str
     mapping_table: dict  # 映射表，用于存储脱敏占位符到原始实体的映射
 
+
 class Plan(BaseModel):
-    steps: List[str] = Field(
-        descriptions="将要执行的步骤，确保步骤按照先后顺序排序"
-    )
+    steps: List[str] = Field(descriptions="将要执行的步骤，确保步骤按照先后顺序排序")
+
 
 class Response(BaseModel):
     response: str
+
 
 class Act(BaseModel):
     action: Union[Response, Plan] = Field(

@@ -51,13 +51,14 @@ def _get_current_timestamp() -> str:
     """获取当前ISO格式时间戳"""
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
 
+
 def cursor_agent(
     prompt: str,
     print_mode: bool = False,
     force: bool = False,
     output_format: str = "text",
     stream_partial_output: bool = False,
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
 ) -> Union[str, Dict[str, Any]]:
     """
     模拟 cursor-agent CLI 命令的行为。
@@ -80,30 +81,21 @@ def cursor_agent(
         if output_format == "text":
             return "错误：缺少必要的 prompt 参数"
         else:
-            return {
-                "error": "缺少必要的 prompt 参数",
-                "exit_code": 1
-            }
+            return {"error": "缺少必要的 prompt 参数", "exit_code": 1}
 
     if not print_mode:
         if output_format == "text":
             return "错误：非打印模式下不执行操作，请设置 print_mode=True"
         else:
-            return {
-                "error": "非打印模式下不执行操作，请设置 print_mode=True",
-                "exit_code": 1
-            }
+            return {"error": "非打印模式下不执行操作，请设置 print_mode=True", "exit_code": 1}
 
     # 使用传入的api_key或从环境变量读取
-    effective_api_key = api_key or os.getenv('CURSOR_API_KEY')
+    effective_api_key = api_key or os.getenv("CURSOR_API_KEY")
     if not effective_api_key:
         if output_format == "text":
             return "错误：API密钥未设置，请设置环境变量 CURSOR_API_KEY"
         else:
-            return {
-                "error": "API密钥未设置，请设置环境变量 CURSOR_API_KEY",
-                "exit_code": 1
-            }
+            return {"error": "API密钥未设置，请设置环境变量 CURSOR_API_KEY", "exit_code": 1}
 
     # 模拟网络延迟
     _simulate_delay()
@@ -115,18 +107,16 @@ def cursor_agent(
             "recommendations": [
                 "添加 JSDoc 注释以提高可读性",
                 "考虑使用 ES6+ 语法重构旧代码",
-                "增加单元测试覆盖"
+                "增加单元测试覆盖",
             ],
-            "file_changes": [
-                {"path": "src/utils.js", "action": "updated", "lines_added": 12}
-            ],
+            "file_changes": [{"path": "src/utils.js", "action": "updated", "lines_added": 12}],
             "success": True,
             "prompt": prompt,
             "print_mode": print_mode,
             "force": force,
             "output_format": output_format,
             "api_key_set": bool(effective_api_key),
-            "exit_code": 0
+            "exit_code": 0,
         }
 
     elif output_format == "stream-json":
@@ -136,6 +126,7 @@ def cursor_agent(
 
     else:  # 默认 text 格式
         return "这个代码库是一个前端应用，使用 React 和 TypeScript 构建，包含用户认证、数据可视化等功能。"
+
 
 def stream_analysis(prompt: str, output_file: str = "analysis.txt") -> Generator[Dict, None, None]:
     """
@@ -155,7 +146,7 @@ def stream_analysis(prompt: str, output_file: str = "analysis.txt") -> Generator
         "subtype": "init",
         "model": "cursor-large-v1",
         "event_id": event_id,
-        "timestamp": _get_current_timestamp()
+        "timestamp": _get_current_timestamp(),
     }
 
     accumulated = ""
@@ -164,11 +155,9 @@ def stream_analysis(prompt: str, output_file: str = "analysis.txt") -> Generator
         accumulated += char
         yield {
             "type": "assistant",
-            "message": {
-                "content": [{"text": accumulated}]
-            },
+            "message": {"content": [{"text": accumulated}]},
             "event_id": event_id,
-            "timestamp": _get_current_timestamp()
+            "timestamp": _get_current_timestamp(),
         }
         time.sleep(0.01)  # 模拟字符级流式输出
 
@@ -177,26 +166,17 @@ def stream_analysis(prompt: str, output_file: str = "analysis.txt") -> Generator
     yield {
         "type": "tool_call",
         "subtype": "started",
-        "tool_call": {
-            "readToolCall": {
-                "args": {"path": "src/"},
-                "id": tool_call_id
-            }
-        },
+        "tool_call": {"readToolCall": {"args": {"path": "src/"}, "id": tool_call_id}},
         "event_id": event_id,
-        "timestamp": _get_current_timestamp()
+        "timestamp": _get_current_timestamp(),
     }
     time.sleep(0.2)
     yield {
         "type": "tool_call",
         "subtype": "completed",
-        "tool_call": {
-            "readToolCall": {
-                "result": {"success": {"totalLines": 450}}
-            }
-        },
+        "tool_call": {"readToolCall": {"result": {"success": {"totalLines": 450}}}},
         "event_id": event_id,
-        "timestamp": _get_current_timestamp()
+        "timestamp": _get_current_timestamp(),
     }
 
     # 模拟工具调用 - writeToolCall
@@ -204,34 +184,28 @@ def stream_analysis(prompt: str, output_file: str = "analysis.txt") -> Generator
     yield {
         "type": "tool_call",
         "subtype": "started",
-        "tool_call": {
-            "writeToolCall": {
-                "args": {"path": output_file},
-                "id": write_tool_id
-            }
-        },
+        "tool_call": {"writeToolCall": {"args": {"path": output_file}, "id": write_tool_id}},
         "event_id": event_id,
-        "timestamp": _get_current_timestamp()
+        "timestamp": _get_current_timestamp(),
     }
     time.sleep(0.2)
     yield {
         "type": "tool_call",
         "subtype": "completed",
         "tool_call": {
-            "writeToolCall": {
-                "result": {"success": {"linesCreated": 23, "fileSize": 1024}}
-            }
+            "writeToolCall": {"result": {"success": {"linesCreated": 23, "fileSize": 1024}}}
         },
         "event_id": event_id,
-        "timestamp": _get_current_timestamp()
+        "timestamp": _get_current_timestamp(),
     }
 
     yield {
         "type": "result",
         "duration_ms": 1250,
         "event_id": event_id,
-        "timestamp": _get_current_timestamp()
+        "timestamp": _get_current_timestamp(),
     }
+
 
 def process_files_glob(pattern: str, prompt_template: str) -> List[Dict[str, Any]]:
     """
@@ -245,27 +219,22 @@ def process_files_glob(pattern: str, prompt_template: str) -> List[Dict[str, Any
         list: 每个文件的处理结果列表
     """
     import glob
+
     results = []
     matched_files = glob.glob(pattern, recursive=True)
 
     if not matched_files:
-        return [{
-            "error": f"未找到匹配 '{pattern}' 的文件",
-            "exit_code": 1
-        }]
+        return [{"error": f"未找到匹配 '{pattern}' 的文件", "exit_code": 1}]
 
     for file_path in matched_files:
         prompt = prompt_template.format(file=file_path)
-        result = cursor_agent(
-            prompt=prompt,
-            print_mode=True,
-            force=True,
-            output_format="json"
-        )
+        result = cursor_agent(prompt=prompt, print_mode=True, force=True, output_format="json")
         result["processed_file"] = file_path
         results.append(result)
 
     return results
+
+
 def stream_process_files_glob(pattern: str, prompt_template: str) -> Generator[Dict, None, None]:
     """
     流式批处理符合 glob 模式的文件，支持实时进度跟踪。
@@ -278,6 +247,7 @@ def stream_process_files_glob(pattern: str, prompt_template: str) -> Generator[D
         dict: 包含处理状态的事件对象
     """
     import glob
+
     matched_files = glob.glob(pattern, recursive=True)
     total = len(matched_files)
     current = 0
@@ -287,7 +257,7 @@ def stream_process_files_glob(pattern: str, prompt_template: str) -> Generator[D
             "type": "error",
             "message": f"未找到匹配 '{pattern}' 的文件",
             "event_id": _generate_event_id(),
-            "timestamp": _get_current_timestamp()
+            "timestamp": _get_current_timestamp(),
         }
         return
 
@@ -301,7 +271,7 @@ def stream_process_files_glob(pattern: str, prompt_template: str) -> Generator[D
             "file": file_path,
             "progress": f"{current}/{total}",
             "event_id": event_id,
-            "timestamp": _get_current_timestamp()
+            "timestamp": _get_current_timestamp(),
         }
 
         # 模拟处理延迟
@@ -312,16 +282,11 @@ def stream_process_files_glob(pattern: str, prompt_template: str) -> Generator[D
             "type": "file_processed",
             "status": "completed",
             "file": file_path,
-            "result": {
-                "recommendations": [
-                    "添加 JSDoc 注释",
-                    "优化函数结构"
-                ],
-                "lines_added": 8
-            },
+            "result": {"recommendations": ["添加 JSDoc 注释", "优化函数结构"], "lines_added": 8},
             "event_id": event_id,
-            "timestamp": _get_current_timestamp()
+            "timestamp": _get_current_timestamp(),
         }
+
 
 class CursorAgent:
     """
@@ -335,7 +300,7 @@ class CursorAgent:
         参数:
             api_key (str, optional): API 密钥（模拟用途）。
         """
-        self.api_key = api_key or os.getenv('CURSOR_API_KEY')
+        self.api_key = api_key or os.getenv("CURSOR_API_KEY")
         if not self.api_key:
             raise ValueError("API密钥未设置，请通过参数或环境变量 CURSOR_API_KEY 提供")
 
@@ -351,11 +316,7 @@ class CursorAgent:
             根据上下文返回文本或JSON响应。
         """
         return cursor_agent(
-            prompt=prompt,
-            print_mode=True,
-            force=force,
-            output_format="text",
-            api_key=self.api_key
+            prompt=prompt, print_mode=True, force=force, output_format="text", api_key=self.api_key
         )
 
     def review(self, target: str = "recent changes") -> Dict[str, Any]:
@@ -370,11 +331,7 @@ class CursorAgent:
         """
         prompt = f"审查 {target} 并提供反馈：\n  - 代码质量和可读性\n  - 潜在的错误或问题\n  - 安全考虑\n  - 最佳实践合规性\n\n提供具体的改进建议。"
         return cursor_agent(
-            prompt=prompt,
-            print_mode=True,
-            force=True,
-            output_format="json",
-            api_key=self.api_key
+            prompt=prompt, print_mode=True, force=True, output_format="json", api_key=self.api_key
         )
 
     def stream_analysis(self, output_file: str = "analysis.txt") -> Generator[Dict, None, None]:
@@ -404,13 +361,16 @@ class CursorAgent:
         template = f"{{file}}: {instruction}"
         yield from stream_process_files_glob(pattern, template)
 
+
 def main():
     """命令行主入口"""
     parser = argparse.ArgumentParser(description="模拟 cursor-agent CLI 工具")
     parser.add_argument("prompt", nargs="?", help="要执行的提示语")
     parser.add_argument("-p", "--print", action="store_true", help="启用打印模式")
     parser.add_argument("--force", action="store_true", help="强制执行更改")
-    parser.add_argument("--output-format", choices=["text", "json", "stream-json"], default="text", help="输出格式")
+    parser.add_argument(
+        "--output-format", choices=["text", "json", "stream-json"], default="text", help="输出格式"
+    )
     parser.add_argument("--stream-partial-output", action="store_true", help="启用部分输出流")
     parser.add_argument("--api-key", help="显式指定API密钥")
 
@@ -427,7 +387,7 @@ def main():
             sys.exit(1)
 
     # 验证API密钥
-    api_key = args.api_key or os.getenv('CURSOR_API_KEY')
+    api_key = args.api_key or os.getenv("CURSOR_API_KEY")
     if not api_key:
         print("错误：API密钥未设置，请设置环境变量 CURSOR_API_KEY", file=sys.stderr)
         sys.exit(1)
@@ -443,7 +403,7 @@ def main():
                 "type": "error",
                 "message": str(e),
                 "event_id": _generate_event_id(),
-                "timestamp": _get_current_timestamp()
+                "timestamp": _get_current_timestamp(),
             }
             print(json.dumps(error_event), file=sys.stderr, flush=True)
             sys.exit(1)
@@ -455,7 +415,7 @@ def main():
             force=args.force,
             output_format=args.output_format,
             stream_partial_output=args.stream_partial_output,
-            api_key=api_key
+            api_key=api_key,
         )
         if isinstance(result, dict):
             if result.get("error"):
@@ -472,14 +432,11 @@ def main():
                 print(result)
                 sys.exit(0)
 
+
 def example_usage():
     """示例用法"""
     print("=== 示例 1：简单查询 ===")
-    result1 = cursor_agent(
-        prompt="这个代码库是做什么的？",
-        print_mode=True,
-        output_format="text"
-    )
+    result1 = cursor_agent(prompt="这个代码库是做什么的？", print_mode=True, output_format="text")
     print(result1)
 
     print("\n=== 示例 2：代码审查（JSON 格式）===")
@@ -490,10 +447,11 @@ def example_usage():
     print("\n=== 示例 3：流式分析（模拟）===")
     for event in agent.stream_analysis():
         print(json.dumps(event))
-    
+
     print("\n=== 示例 4：流式批处理多个文件 ===")
     for event in stream_process_files_glob("src/**/*.js", "为 {file} 添加全面的 JSDoc 注释"):
         print(json.dumps(event))
+
 
 if __name__ == "__main__":
     # 判断是否以模块方式运行还是直接执行

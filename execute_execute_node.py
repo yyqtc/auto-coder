@@ -9,14 +9,13 @@ import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
 config = json.load(open("config.json", encoding="utf-8"))
+
 
 def _init_agent():
     _model = ChatOpenAI(
@@ -24,10 +23,10 @@ def _init_agent():
         openai_api_key=config["QWEN_API_KEY"],
         openai_api_base=config["QWEN_API_BASE"],
         temperature=0.7,
-        max_tokens=10000
+        max_tokens=10000,
     )
 
-    _prompt="""
+    _prompt = """
         你是一位代码专家、一个删除文件的助手、一位可以列出工作目录下文件的助手、一位可以浏览需求目录下所有文件的助手以及一位创建目录的助手的组长，你的任务是理解需求然后分配任务给代码专家、列出文件的助手以及创建目录的助手。
         注意！
         1. 你必须做到将任务分配给正确的人，否则项目将会失败！
@@ -40,36 +39,30 @@ def _init_agent():
         8. 你的可以浏览需求目录下所有文件的助手可以浏览需求目录下所有文件，但是他非常的蠢，他只会用你告诉他的文件名去搜索需求目录下所有文件！必须告诉在他的文件名后面带上扩展名！
     """
 
-    agent = create_agent(
-        model=_model,
-        system_prompt=_prompt,
-        tools=tools
-    )
+    agent = create_agent(model=_model, system_prompt=_prompt, tools=tools)
 
     return agent
+
 
 async def execute_node(state: PlanExecute) -> PlanExecute:
     agent = _init_agent()
 
     if not state.get("plan") or len(state["plan"]) == 0:
         logger.error("计划列表为空，无法执行任务")
-        return {
-            "response": "计划列表为空，无法执行任务"
-        }
+        return {"response": "计划列表为空，无法执行任务"}
 
     task = state["plan"].pop(0)
     logger.info(f"开发团队正在完成任务：{task}...")
     formatted_task = f"""
     完成这个任务：{task}。不要做和{task}无关的内容。
     """
-    
-    agent_response = await agent.ainvoke({
-        "messages": [("user", formatted_task)]
-    })
-    
+
+    agent_response = await agent.ainvoke({"messages": [("user", formatted_task)]})
+
     return {
         "past_steps": [(task, agent_response["messages"][-1].content)],
     }
+
 
 if __name__ == "__main__":
     # result = asyncio.run(execute_node({
@@ -77,9 +70,10 @@ if __name__ == "__main__":
     #     "plan": ["在test目录下的hello.txt里写点废话"]
     # }))
 
-    result = asyncio.run(execute_node({
-        "input": "测试问题",
-        "plan": ["在test目录下的hello.txt里为里面的废话写个感受总结"]
-    }))
+    result = asyncio.run(
+        execute_node(
+            {"input": "测试问题", "plan": ["在test目录下的hello.txt里为里面的废话写个感受总结"]}
+        )
+    )
 
     print(result)
