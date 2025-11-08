@@ -120,7 +120,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
                 break
                 
             step, response = past_step
-            past_steps_content += f"步骤：\n{step}\n响应：{response}\n\n"
+            past_steps_content += f"步骤：\n{step}\n\n响应：\n{response}\n\n"
 
         if len(past_steps_content) > config["SUMMARY_THRESHOLD"]:
             past_steps_content = summary_pro.invoke(
@@ -129,7 +129,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             past_steps = [("过去一系列任务摘要", past_steps_content), past_steps[-1]]
             past_steps_content += "\n\n"
 
-        past_steps_content += f"步骤：\n{past_steps[-1][0]}\n响应：{past_steps[-1][1]}\n\n"
+        past_steps_content += f"步骤：\n{past_steps[-1][0]}\n\n响应：\n{past_steps[-1][1]}\n\n"
 
         return ("past_steps_content", (past_steps, past_steps_content))
 
