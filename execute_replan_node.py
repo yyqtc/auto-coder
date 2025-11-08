@@ -3,14 +3,12 @@ from langchain_core.prompts import ChatPromptTemplate
 from execute_custom_type import Plan, Response, Act, PlanExecute
 from execute_replan_utils import analyze_what_to_do
 from constants import (
-    REQUIREMENT_READ_FAIL_MESSAGE,
     UNKNOWN_ERROR_MESSAGE,
-    DEVELOPMENT_LOG_NOT_EXISTS,
 )
 
 import os
 import json
-import time
+import shutil
 import logging
 import asyncio
 
@@ -174,6 +172,14 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     if isinstance(result.action, Response):
         return {"response": result.action.response}
     elif isinstance(result.action, Plan):
+        if os.path.exists(f"./history/{config['PROJECT_NAME']}"):
+            c.rmtree(f"./history/{config['PROJECT_NAME']}")
+        shutil.copytree(
+            f"./dist/{config['PROJECT_NAME']}",
+            f"./history/{config['PROJECT_NAME']}",
+            dirs_exist_ok=True,
+        )
+
         return {"plan": result.action.steps, "past_steps": past_steps}
     else:
         return {"response": UNKNOWN_ERROR_MESSAGE}
