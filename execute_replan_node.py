@@ -127,6 +127,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
                 f"请适当总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}"
             ).content.strip()
             past_steps = [("过去一系列任务摘要", past_steps_content), past_steps[-1]]
+            past_steps_content += "\n\n"
 
         past_steps_content += f"步骤：\n{past_steps[-1][0]}\n响应：{past_steps[-1][1]}\n\n"
 
