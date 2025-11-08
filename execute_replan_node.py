@@ -170,7 +170,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         return {"response": result.action.response}
     elif isinstance(result.action, Plan):
         if os.path.exists(f"./history/{config['PROJECT_NAME']}"):
-            c.rmtree(f"./history/{config['PROJECT_NAME']}")
+            shutil.rmtree(f"./history/{config['PROJECT_NAME']}")
         shutil.copytree(
             f"./dist/{config['PROJECT_NAME']}",
             f"./history/{config['PROJECT_NAME']}",

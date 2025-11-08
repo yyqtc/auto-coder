@@ -40,13 +40,10 @@ def _init_agent():
         8. 你的可以浏览需求目录下所有文件的助手可以浏览需求目录下所有文件，但是他非常的蠢，他只会用你告诉他的文件名去搜索需求目录下所有文件！必须告诉在他的文件名后面带上扩展名！
     """
 
-    agent = create_agent(
-        model=_model,
-        system_prompt=_prompt,
-        tools=tools
-    )
+    agent = create_agent(model=_model, system_prompt=_prompt, tools=tools)
 
     return agent
+
 
 async def execute_node(state: PlanExecute) -> PlanExecute:
     count = 0
