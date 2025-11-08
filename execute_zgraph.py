@@ -4,6 +4,8 @@ from custom_type import ActionReview
 from execute_plan_node import execute_plan_node
 from execute_replan_node import execute_replan_node
 from execute_execute_node import execute_node
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 
 import asyncio
 import json
@@ -20,6 +22,28 @@ logger = logging.getLogger(__name__)
 
 config = json.load(open("./config.json", "r", encoding="utf-8"))
 
+dp_model = ChatOpenAI(
+    model="deepseek-chat",
+    openai_api_key=config["DEEPSEEK_API_KEY"],
+    openai_api_base=config["DEEPSEEK_API_BASE"],
+    temperature=0.4,
+)
+
+summary_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            f"""
+        你是一位非常专业的总结专家，善于抓住项目日志中的重点内容。请把项目日志的字数控制在{config["SUMMARY_MAX_LENGTH"]}个token以内。
+        注意！
+        你只需要保留完成了哪些需求，遗留了哪些问题，重复出现的信息和除了需求和问题之外的其他信息都删除！
+        """,
+        ),
+        ("user", "{input}"),
+    ]
+)
+
+summary_pro = summary_prompt | dp_model
 
 def _should_end(state: PlanExecute):
     if "response" in state and state["response"]:
@@ -67,6 +91,22 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
             shutil.copytree(
                 f"./history/{config['PROJECT_NAME']}", f"./dist/{config['PROJECT_NAME']}"
             )
+
+    finally:
+        if os.path.exists(f"./dist/{config['PROJECT_NAME']}/development.log"):
+            content = ""
+            with open(f"./dist/{config['PROJECT_NAME']}/development.log", "r", encoding="utf-8") as f:
+                content_parts = f.readlines()
+                for part in content_parts:
+                    content += part + "\n"
+                    if len(content) > config["SUMMARY_THRESHOLD"]:
+                        content = summary_pro.invoke(
+                            f"请适当总结项目开发日志，项目开发日志内容如下：\n{content}"
+                        ).content.strip()
+                        content += '\n'
+                        
+            with open(f"./dist/{config['PROJECT_NAME']}/development.log", "w", encoding="utf-8") as f:
+                f.write(content)
 
     return {"count": count}
 

@@ -319,11 +319,11 @@ auto-coder/
 
 ### 添加新工具
 
-在 `execute_execute_tool.py` 或 `review_tool.py` 中添加新的 `@tool` 装饰的函数，并更新 `tools` 列表。
+在 `execute_execute_tool.py` 或 `review_tool.py` 中添加新的 `tool` 装饰的函数，并更新 `tools` 列表。
 
 示例：
 ```python
-@tool
+tool
 def my_new_tool(param: str) -> str:
     """工具描述"""
     # 实现逻辑
