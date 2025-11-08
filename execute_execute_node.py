@@ -2,8 +2,6 @@ from execute_execute_tool import tools
 from execute_custom_type import PlanExecute
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
-from langgraph.checkpoint.memory import InMemorySaver
-from langchain.agents.middleware import SummarizationMiddleware
 
 import json
 import asyncio
@@ -45,22 +43,10 @@ def _init_agent():
     agent = create_agent(
         model=_model,
         system_prompt=_prompt,
-        tools=tools,
-        checkpointer=InMemorySaver(),
-        middleware=[
-            SummarizationMiddleware(
-                model=_model,
-                max_tokens_before_summary=config["SUMMARY_THRESHOLD"],
-                messages_to_keep=20,
-            )
-        ],
+        tools=tools
     )
 
     return agent
-
-
-agent = _init_agent()
-
 
 async def execute_node(state: PlanExecute) -> PlanExecute:
     count = 0
@@ -73,6 +59,8 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
     if not state.get("plan") or len(state["plan"]) == 0:
         logger.error("计划列表为空，无法执行任务")
         return {"response": "计划列表为空，无法执行任务"}
+
+    agent = _init_agent()
 
     tasks = state["plan"][:2]
     state["plan"] = state["plan"][2:]
