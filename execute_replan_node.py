@@ -57,6 +57,9 @@ _prompt = ChatPromptTemplate.from_messages(
         我们最近一次计划是：
         {plan}
 
+        我们最近一次的开发成果是：
+        {past_steps_content}
+
         你的检查项目实际状况的助手告诉给你的项目实际状况是：
         {project_status}
 
@@ -111,7 +114,10 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
     async def read_past_steps(past_steps):
         past_steps_content = ""
-        for past_step in past_steps:
+        for index, past_step in enumerate(past_steps):
+            if index == len(past_steps) - 1:
+                break
+                
             step, response = past_step
             past_steps_content += f"步骤：\n{step}\n响应：{response}\n\n"
 
@@ -119,7 +125,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             past_steps_content = summary_pro.invoke(
                 f"请适当总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}"
             ).content.strip()
-            past_steps = [("过去一系列任务摘要", past_steps_content)]
+            past_steps = [("过去一系列任务摘要", past_steps_content), past_steps[-1]]
+
+        past_steps_content += f"步骤：\n{past_steps[-1][0]}\n响应：{past_steps[-1][1]}\n\n"
 
         return ("past_steps_content", (past_steps, past_steps_content))
 
@@ -159,7 +167,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         {
             "todo": todo,
             "plan": plan,
-            "past_steps": past_steps_content,
+            "past_steps_content": past_steps_content,
             "project_status": project_status,
         }
     )
