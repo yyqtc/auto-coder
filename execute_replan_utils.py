@@ -70,6 +70,7 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
 
         注意！
         你不允许对所在目录的父目录进行写入操作！
+        重点回复存在的问题！不要遗漏任何问题！
         请把你的分析结果写入到./dist/{config['PROJECT_NAME']}/development_log.md文件中！
     """
     if count > 0:
