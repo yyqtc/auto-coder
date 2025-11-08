@@ -95,9 +95,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         try:
             with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
                 todo = f.read()
-                if len(todo) > config["SUMMARY_MAX_LENGTH"]:
+                if len(todo) > config["SUMMARY_THRESHOLD"]:
                     todo = summary_pro.invoke(
-                        f"请适当总结项目需求，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目需求内容如下：\n{todo}"
+                        f"请适当总结项目需求，项目需求内容如下：\n{todo}"
                     ).content.strip()
 
         except Exception as e:
@@ -115,9 +115,9 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
             step, response = past_step
             past_steps_content += f"步骤：\n{step}\n响应：{response}\n\n"
 
-        if len(past_steps_content) > config["SUMMARY_MAX_LENGTH"]:
+        if len(past_steps_content) > config["SUMMARY_THRESHOLD"]:
             past_steps_content = summary_pro.invoke(
-                f"请适当总结项目开发日志，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目开发日志内容如下：\n{past_steps_content}"
+                f"请适当总结项目开发日志，项目开发日志内容如下：\n{past_steps_content}"
             ).content.strip()
             past_steps = [("过去一系列任务摘要", past_steps_content)]
 
@@ -147,14 +147,11 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
 
         analysis_count += 1
 
-    if len(project_status) > config["SUMMARY_MAX_LENGTH"]:
+    if len(project_status) > config["SUMMARY_THRESHOLD"]:
         project_status = summary_pro.invoke(
-            f"请适当总结项目实际状况，输出结果控制在{config['SUMMARY_MAX_LENGTH']}个token以内，项目实际状况内容如下：\n{project_status}"
+            f"请适当总结项目实际状况，项目实际状况内容如下：\n{project_status}"
         ).content.strip()
         logger.info("压缩开发日志成功")
-
-    with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "w+", encoding="utf-8") as f:
-        f.write(project_status)
 
     logger.info(f"项目实际状况: \n{project_status}")
 

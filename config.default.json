@@ -9,5 +9,6 @@
     "DEEPSEEK_API_KEY": "your-api-key",
     "DEEPSEEK_API_BASE": "https://api.deepseek.com",
     "SUMMARY_MAX_LENGTH": 2000,
+    "SUMMARY_THRESHOLD": 6000,
     "RECURSION_LIMIT": 100
 }

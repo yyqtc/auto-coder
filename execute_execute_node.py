@@ -50,7 +50,7 @@ def _init_agent():
         middleware=[
             SummarizationMiddleware(
                 model=_model,
-                max_tokens_before_summary=config["SUMMARY_MAX_LENGTH"],
+                max_tokens_before_summary=config["SUMMARY_THRESHOLD"],
                 messages_to_keep=20,
             )
         ],

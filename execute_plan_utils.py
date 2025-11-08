@@ -212,7 +212,7 @@ def analyze_what_to_do():
         {development_log}
         """
 
-    prompt += "\n\n注意！分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。\n你不允许对所在目录的父目录进行写入操作！"
+    prompt += "\n\n注意！分析中你必须并根据审核员意见和开发日志调整分析结果。\n你不允许对所在目录的父目录进行写入操作！"
 
     if config["MOCK"]:
         return _execute_script_subprocess(
