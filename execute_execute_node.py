@@ -72,7 +72,7 @@ async def execute_node(state: PlanExecute) -> PlanExecute:
     """
 
     agent_response = await agent.ainvoke(
-        {"messages": [("user", formatted_task)]}, {"configurable": {"thread_id": f"{count}"}}
+        {"messages": [("user", formatted_task)]}, {"recursion_limit": config["RECURSION_LIMIT"]}
     )
 
     return {
