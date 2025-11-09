@@ -118,7 +118,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
         for index, past_step in enumerate(past_steps):
             if index == len(past_steps) - 1:
                 break
-                
+
             step, response = past_step
             past_steps_content += f"步骤：\n{step}\n\n响应：\n{response}\n\n"
 

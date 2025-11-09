@@ -104,6 +104,13 @@ def code_professional(prompt: str) -> str:
     logger.info("use code_professional tool")
     logger.info(f"我收到的命令是: {prompt}")
 
+    prompt += """
+    
+    注意！
+    1. 你编写的文档、代码中不准使用emoji！
+    2. 你编写的代码中必须抑制除了打印错误信息和结果信息以外的其他打印信息！
+    """
+
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
             f"python {config['SIM_CURSOR_PATH']} -p --force '{prompt}'", env_vars=env_vars
@@ -162,7 +169,7 @@ def list_files(path: str) -> List[str] | str:
 
 
 @tool
-def search_todo_dir(file_name: str) -> List[str]:
+def search_todo_dir(file_name: str) -> List[str] | str:
     """
     可以浏览需求目录下所有文件的助手，告诉他文件名，他会在todo目录下搜索文件，如果文件存在，返回文件内容，否则返回文件不存在。
     Args:
@@ -170,11 +177,11 @@ def search_todo_dir(file_name: str) -> List[str]:
 
     Returns:
         如果文件存在，返回文件内容
-        如果文件不存在，返回“文件不存在”
+        如果文件不存在，返回需求目录下所有文件名的列表
     """
     logger.info("use search_todo_dir tool")
     if not os.path.exists(f"{project_path}/todo/{config['PROJECT_NAME']}/{file_name}"):
-        return "文件不存在"
+        return os.listdir(f"{project_path}/todo/{config['PROJECT_NAME']}")
 
     with open(
         f"{project_path}/todo/{config['PROJECT_NAME']}/{file_name}", "r", encoding="utf-8"

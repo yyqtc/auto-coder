@@ -45,6 +45,7 @@ summary_prompt = ChatPromptTemplate.from_messages(
 
 summary_pro = summary_prompt | dp_model
 
+
 def _should_end(state: PlanExecute):
     if "response" in state and state["response"]:
         return END
@@ -95,7 +96,9 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
     finally:
         if os.path.exists(f"./dist/{config['PROJECT_NAME']}/development.log"):
             content = ""
-            with open(f"./dist/{config['PROJECT_NAME']}/development.log", "r", encoding="utf-8") as f:
+            with open(
+                f"./dist/{config['PROJECT_NAME']}/development.log", "r", encoding="utf-8"
+            ) as f:
                 content_parts = f.readlines()
                 for part in content_parts:
                     content += part + "\n"
@@ -103,9 +106,11 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
                         content = summary_pro.invoke(
                             f"请适当总结项目开发日志，项目开发日志内容如下：\n{content}"
                         ).content.strip()
-                        content += '\n'
-                        
-            with open(f"./dist/{config['PROJECT_NAME']}/development.log", "w", encoding="utf-8") as f:
+                        content += "\n"
+
+            with open(
+                f"./dist/{config['PROJECT_NAME']}/development.log", "w", encoding="utf-8"
+            ) as f:
                 f.write(content)
 
     return {"count": count}
