@@ -5,6 +5,7 @@ import os
 import logging
 import shlex
 import subprocess
+import platform
 
 logging.basicConfig(
     level=logging.INFO,
@@ -101,10 +102,12 @@ def convert_docx_to_markdown(docx_path: str) -> str:
 
     docx_name = os.path.basename(docx_path).split(".")[0]
     doc = Document(docx_path)
-    os.makedirs(f"./todo/{config['PROJECT_NAME']}/{docx_name}", exist_ok=True)
-    os.makedirs(f"./todo/{config['PROJECT_NAME']}/{docx_name}/img", exist_ok=True)
-    with open(f"./todo/{config['PROJECT_NAME']}/{docx_name}/todo.md", "w+", encoding="utf-8") as f:
-        f.write(_revert_docx_to_md(doc, f"./todo/{config['PROJECT_NAME']}/{docx_name}"))
+    todo_docx_dir = os.path.join(".", "todo", config['PROJECT_NAME'], docx_name)
+    os.makedirs(todo_docx_dir, exist_ok=True)
+    os.makedirs(os.path.join(todo_docx_dir, "img"), exist_ok=True)
+    todo_md_path = os.path.join(todo_docx_dir, "todo.md")
+    with open(todo_md_path, "w+", encoding="utf-8") as f:
+        f.write(_revert_docx_to_md(doc, todo_docx_dir))
 
 
 def convert_pdf_to_markdown(pdf_path: str) -> str:
@@ -129,12 +132,12 @@ def convert_pdf_to_markdown(pdf_path: str) -> str:
                 content += page_content + "\n\n"
 
         pdf_name = os.path.basename(pdf_path).split(".")[0]
-        if not os.path.exists(f"./todo/{config['PROJECT_NAME']}/{pdf_name}"):
-            os.makedirs(f"./todo/{config['PROJECT_NAME']}/{pdf_name}", exist_ok=True)
+        todo_pdf_dir = os.path.join(".", "todo", config['PROJECT_NAME'], pdf_name)
+        if not os.path.exists(todo_pdf_dir):
+            os.makedirs(todo_pdf_dir, exist_ok=True)
 
-        with open(
-            f"./todo/{config['PROJECT_NAME']}/{pdf_name}/todo.md", "w+", encoding="utf-8"
-        ) as f:
+        todo_md_path = os.path.join(todo_pdf_dir, "todo.md")
+        with open(todo_md_path, "w+", encoding="utf-8") as f:
             f.write(content)
 
     return "pdf文件转换为markdown文件成功"
@@ -149,25 +152,52 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         env_vars: 要传递的环境变量字典，例如 {"CURSOR_API_KEY": "..."}
     """
     try:
+        # 检测操作系统
+        is_windows = platform.system() == "Windows"
+        
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        base_command = f"cd {project_path}/todo/{config['PROJECT_NAME']}"
-        full_command = ""
-        if env_vars:
-            env_exports = " ".join(
-                [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+        todo_dir = os.path.join(project_path, "todo", config['PROJECT_NAME'])
+        
+        if is_windows:
+            # Windows 使用 cmd /c
+            base_command = f"cd {shlex.quote(todo_dir)}"
+            full_command = ""
+            if env_vars:
+                env_exports = " && ".join(
+                    [f"set {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+                )
+                full_command = f"{base_command} && {env_exports} && {script_command}"
+            else:
+                full_command = f"{base_command} && {script_command}"
+            
+            result = subprocess.run(
+                ["cmd", "/c", full_command],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
-            full_command = f"{base_command} && {env_exports} && {script_command}"
         else:
-            full_command = f"{base_command} && {script_command}"
-
-        result = subprocess.run(
-            ["bash", "-c", full_command],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
-            check=True,
-        )
+            # Linux/Unix 使用 bash -c
+            base_command = f"cd {shlex.quote(todo_dir.replace(os.sep, '/'))}"
+            full_command = ""
+            if env_vars:
+                env_exports = " ".join(
+                    [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+                )
+                full_command = f"{base_command} && {env_exports} && {script_command}"
+            else:
+                full_command = f"{base_command} && {script_command}"
+            
+            result = subprocess.run(
+                ["bash", "-c", full_command],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
+            )
         logger.info("执行成功！")
         logger.info(f"输出: {result.stdout}")
         return result.stdout
@@ -186,7 +216,7 @@ def analyze_what_to_do():
     prompt = "请综合分析目录下所有文件内容，以需求点的形式一一列举，以markdown格式写到本文件夹下的todo.md文件中。"
 
     opinion = ""
-    opinion_file = f"./opinion/{config['PROJECT_NAME']}.md"
+    opinion_file = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
     if os.path.exists(opinion_file):
         with open(opinion_file, "r", encoding="utf-8") as f:
             opinion = f.read()
@@ -199,7 +229,7 @@ def analyze_what_to_do():
         """
 
     development_log = ""
-    development_log_file = f"./dist/{config['PROJECT_NAME']}/development_log.md"
+    development_log_file = os.path.join(".", "dist", config['PROJECT_NAME'], "development_log.md")
     if os.path.exists(development_log_file):
         with open(development_log_file, "r", encoding="utf-8") as f:
             development_log = f.read()

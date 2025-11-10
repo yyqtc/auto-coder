@@ -53,7 +53,8 @@ def write_opinion_file(content: str) -> str:
         返回字符串“文件写入成功”
     """
     logger.info("use write_opinion_file tool")
-    with open(f"./opinion/{config['PROJECT_NAME']}.md", "w+", encoding="utf-8") as f:
+    opinion_file_path = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
+    with open(opinion_file_path, "w+", encoding="utf-8") as f:
         f.write(content)
 
     return "文件写入成功"
@@ -72,10 +73,11 @@ def read_opinion_file() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_opinion_file tool")
-    if not os.path.exists(f"./opinion/{config['PROJECT_NAME']}.md"):
+    opinion_file_path = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
+    if not os.path.exists(opinion_file_path):
         return "文件不存在"
 
-    with open(f"./opinion/{config['PROJECT_NAME']}.md", "r", encoding="utf-8") as f:
+    with open(opinion_file_path, "r", encoding="utf-8") as f:
         return f.read()
 
 
@@ -92,10 +94,11 @@ def read_todo_content() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_todo_content tool")
-    if not os.path.exists(f"./todo/{config['PROJECT_NAME']}/todo.md"):
+    todo_file_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo.md")
+    if not os.path.exists(todo_file_path):
         return "文件不存在"
 
-    with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
+    with open(todo_file_path, "r", encoding="utf-8") as f:
         return f.read()
 
 
@@ -112,10 +115,11 @@ def read_development_log() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_development_log tool")
-    if not os.path.exists(f"./dist/{config['PROJECT_NAME']}/development_log.md"):
+    development_log_path = os.path.join(".", "dist", config['PROJECT_NAME'], "development_log.md")
+    if not os.path.exists(development_log_path):
         return "文件不存在"
 
-    with open(f"./dist/{config['PROJECT_NAME']}/development_log.md", "r", encoding="utf-8") as f:
+    with open(development_log_path, "r", encoding="utf-8") as f:
         development_log = f.read()
         development_log_parts = development_log.split("\n")
         compressed_development_log = ""

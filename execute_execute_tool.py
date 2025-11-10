@@ -6,6 +6,7 @@ import json
 import shlex
 import subprocess
 import logging
+import platform
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,25 +29,53 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         env_vars: 要传递的环境变量字典，例如 {"CURSOR_API_KEY": "..."}
     """
     try:
+        # 检测操作系统
+        is_windows = platform.system() == "Windows"
+        
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        base_command = f"cd {project_path}/dist/{config['PROJECT_NAME']}"
-        full_command = ""
-        if env_vars:
-            env_exports = " ".join(
-                [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+        dist_dir = os.path.join(project_path, "dist", config['PROJECT_NAME'])
+        
+        if is_windows:
+            # Windows 使用 cmd /c
+            base_command = f"cd {shlex.quote(dist_dir)}"
+            full_command = ""
+            if env_vars:
+                env_exports = " && ".join(
+                    [f"set {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+                )
+                full_command = f"{base_command} && {env_exports} && {script_command}"
+            else:
+                full_command = f"{base_command} && {script_command}"
+            
+            result = subprocess.run(
+                ["cmd", "/c", full_command],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
-            full_command = f"{base_command} && {env_exports} && {script_command}"
         else:
-            full_command = f"{base_command} && {script_command}"
-
-        result = subprocess.run(
-            ["bash", "-c", full_command],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
-            check=True,
-        )
+            # Linux/Unix 使用 bash -c
+            base_command = f"cd {shlex.quote(dist_dir.replace(os.sep, '/'))}"
+            full_command = ""
+            if env_vars:
+                env_exports = " ".join(
+                    [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+                )
+                full_command = f"{base_command} && {env_exports} && {script_command}"
+            else:
+                full_command = f"{base_command} && {script_command}"
+            
+            result = subprocess.run(
+                ["bash", "-c", full_command],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
+            )
+        
         logger.info("执行成功！")
         logger.info(f"输出: {result.stdout}")
         return result.stdout
@@ -161,10 +190,9 @@ def list_files(path: str) -> List[str] | str:
     """
     logger.info("use list_files tool")
 
-    if not os.path.exists(f"{project_path}/dist/{config['PROJECT_NAME']}/{path}"):
-        return "目录不存在"
-
     dir_path = os.path.join(project_path, "dist", config["PROJECT_NAME"], path)
+    if not os.path.exists(dir_path):
+        return "目录不存在"
     return os.listdir(dir_path)
 
 
@@ -180,12 +208,12 @@ def search_todo_dir(file_name: str) -> List[str] | str:
         如果文件不存在，返回需求目录下所有文件名的列表
     """
     logger.info("use search_todo_dir tool")
-    if not os.path.exists(f"{project_path}/todo/{config['PROJECT_NAME']}/{file_name}"):
-        return os.listdir(f"{project_path}/todo/{config['PROJECT_NAME']}")
+    todo_file_path = os.path.join(project_path, "todo", config['PROJECT_NAME'], file_name)
+    if not os.path.exists(todo_file_path):
+        todo_dir = os.path.join(project_path, "todo", config['PROJECT_NAME'])
+        return os.listdir(todo_dir)
 
-    with open(
-        f"{project_path}/todo/{config['PROJECT_NAME']}/{file_name}", "r", encoding="utf-8"
-    ) as f:
+    with open(todo_file_path, "r", encoding="utf-8") as f:
         return f.read()
 
 

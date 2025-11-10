@@ -87,18 +87,17 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
 
     except Exception as e:
         logger.error(f"执行计划失败: {e}")
-        shutil.rmtree(f"./dist/{config['PROJECT_NAME']}")
-        if os.path.exists(f"./history/{config['PROJECT_NAME']}"):
-            shutil.copytree(
-                f"./history/{config['PROJECT_NAME']}", f"./dist/{config['PROJECT_NAME']}"
-            )
+        dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
+        shutil.rmtree(dist_dir)
+        history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
+        if os.path.exists(history_dir):
+            shutil.copytree(history_dir, dist_dir)
 
     finally:
-        if os.path.exists(f"./dist/{config['PROJECT_NAME']}/development.log"):
+        development_log_path = os.path.join(".", "dist", config['PROJECT_NAME'], "development.log")
+        if os.path.exists(development_log_path):
             content = ""
-            with open(
-                f"./dist/{config['PROJECT_NAME']}/development.log", "r", encoding="utf-8"
-            ) as f:
+            with open(development_log_path, "r", encoding="utf-8") as f:
                 content_parts = f.readlines()
                 for part in content_parts:
                     content += part + "\n"
@@ -108,9 +107,7 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
                         ).content.strip()
                         content += "\n"
 
-            with open(
-                f"./dist/{config['PROJECT_NAME']}/development.log", "w", encoding="utf-8"
-            ) as f:
+            with open(development_log_path, "w", encoding="utf-8") as f:
                 f.write(content)
 
     return {"count": count}

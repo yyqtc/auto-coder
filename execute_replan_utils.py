@@ -3,6 +3,7 @@ import os
 import logging
 import shlex
 import subprocess
+import platform
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,25 +26,50 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         env_vars: 要传递的环境变量字典，例如 {"CURSOR_API_KEY": "..."}
     """
     try:
+        # 检测操作系统
+        is_windows = platform.system() == "Windows"
+        
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        base_command = f"cd {project_path}/dist/{config['PROJECT_NAME']}"
-
-        if env_vars:
-            env_exports = " ".join(
-                [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+        dist_dir = os.path.join(project_path, "dist", config['PROJECT_NAME'])
+        
+        if is_windows:
+            # Windows 使用 cmd /c
+            base_command = f"cd {shlex.quote(dist_dir)}"
+            if env_vars:
+                env_exports = " && ".join(
+                    [f"set {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+                )
+                full_command = f"{base_command} && {env_exports} && {script_command}"
+            else:
+                full_command = f"{base_command} && {script_command}"
+            
+            result = subprocess.run(
+                ["cmd", "/c", full_command],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
             )
-            full_command = f"{base_command} && {env_exports} && {script_command}"
         else:
-            full_command = f"{base_command} && {script_command}"
-
-        result = subprocess.run(
-            ["bash", "-c", full_command],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",  # 如果遇到无法解码的字符，用替换字符代替而不是抛出异常
-            check=True,
-        )
+            # Linux/Unix 使用 bash -c
+            base_command = f"cd {shlex.quote(dist_dir.replace(os.sep, '/'))}"
+            if env_vars:
+                env_exports = " ".join(
+                    [f"export {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
+                )
+                full_command = f"{base_command} && {env_exports} && {script_command}"
+            else:
+                full_command = f"{base_command} && {script_command}"
+            
+            result = subprocess.run(
+                ["bash", "-c", full_command],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
+            )
         logger.info("执行成功！")
         logger.info(f"输出: {result.stdout}")
         return result.stdout
@@ -71,11 +97,11 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         注意！
         你不允许对所在目录的父目录进行写入操作！
         重点回复存在的问题！不要遗漏任何问题！
-        请把你的分析结果写入到./dist/{config['PROJECT_NAME']}/development_log.md文件中！
+        请把你的分析结果写入到development_log.md文件中！
     """
     if count > 0:
         opinion = ""
-        opinion_file = f"./opinion/{config['PROJECT_NAME']}.md"
+        opinion_file = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
         if os.path.exists(opinion_file):
             with open(opinion_file, "r", encoding="utf-8") as f:
                 opinion = f.read()

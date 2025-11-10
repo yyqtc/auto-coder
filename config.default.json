@@ -3,6 +3,7 @@
     "SIM_CURSOR_PATH": "/path-to-sim_sdk.py",
     "MOCK": false,
     "CURSOR_PATH": "/root/.local/bin/cursor-agent",
+    "EXECUTE_PATH": "execute-agent.bat",
     "PROJECT_NAME": "your-project-name",
     "QWEN_API_KEY": "your-api-key",
     "QWEN_API_BASE": "https://dashscope.aliyuncs.com/compatible-mode/v1",

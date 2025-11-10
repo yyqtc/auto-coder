@@ -25,24 +25,23 @@ async def counter_node(state: ActionReview) -> ActionReview:
     if "response" in state and len(state["response"]) > 0:
         return {"response": state["response"]}
 
-    if count != 0 and os.path.exists(f"./opinion/{config['PROJECT_NAME']}.md"):
+    opinion_file_path = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
+    if count != 0 and os.path.exists(opinion_file_path):
         check_input = ""
         while check_input != "pass" and check_input != "reject":
             check_input = input(
-                f"请检查审核意见->./opinion/{config['PROJECT_NAME']}.md。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject："
+                f"请检查审核意见->{opinion_file_path}。如果你认为没有必要继续修改，请输入pass。如果你认为有必要继续修改，请输入reject："
             )
 
         if check_input == "pass":
             return {"response": "pass"}
 
-    if os.path.exists(f"./dist/{config['PROJECT_NAME']}"):
-        if os.path.exists(f"./history/{config['PROJECT_NAME']}"):
-            shutil.rmtree(f"./history/{config['PROJECT_NAME']}")
+    dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
+    if os.path.exists(dist_dir):
+        history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
+        if os.path.exists(history_dir):
+            shutil.rmtree(history_dir)
 
-        shutil.copytree(
-            f"./dist/{config['PROJECT_NAME']}",
-            f"./history/{config['PROJECT_NAME']}",
-            dirs_exist_ok=True,
-        )
+        shutil.copytree(dist_dir, history_dir, dirs_exist_ok=True)
 
     return {"count": count}

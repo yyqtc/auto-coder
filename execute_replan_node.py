@@ -97,7 +97,8 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     async def read_todo_content():
         todo = ""
         try:
-            with open(f"./todo/{config['PROJECT_NAME']}/todo.md", "r", encoding="utf-8") as f:
+            todo_file_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo.md")
+            with open(todo_file_path, "r", encoding="utf-8") as f:
                 todo = f.read()
                 if len(todo) > config["SUMMARY_THRESHOLD"]:
                     todo = summary_pro.invoke(
@@ -179,13 +180,11 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     if isinstance(result.action, Response):
         return {"response": result.action.response}
     elif isinstance(result.action, Plan):
-        if os.path.exists(f"./history/{config['PROJECT_NAME']}"):
-            shutil.rmtree(f"./history/{config['PROJECT_NAME']}")
-        shutil.copytree(
-            f"./dist/{config['PROJECT_NAME']}",
-            f"./history/{config['PROJECT_NAME']}",
-            dirs_exist_ok=True,
-        )
+        history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
+        if os.path.exists(history_dir):
+            shutil.rmtree(history_dir)
+        dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
+        shutil.copytree(dist_dir, history_dir, dirs_exist_ok=True)
 
         return {"plan": result.action.steps, "past_steps": past_steps}
     else:
