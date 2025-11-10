@@ -17,6 +17,22 @@ config = json.load(open("config.json", "r", encoding="utf-8"))
 project_path = os.path.abspath(os.path.dirname(__file__))
 
 
+def _get_drive_letter(path):
+    """
+    获取路径所在的卷（驱动器字母）
+    
+    Args:
+        path: 文件或目录路径
+        
+    Returns:
+        在Windows上返回驱动器字母（如 'C:'），在Linux/Mac上返回空字符串
+    """
+    if platform.system() == "Windows":
+        drive, _ = os.path.splitdrive(os.path.abspath(path))
+        return drive
+    return ""
+
+
 def _execute_script_subprocess(script_command, env_vars=None) -> str:
     """
     使用 subprocess 模块执行脚本（推荐）
@@ -34,7 +50,15 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         
         if is_windows:
             # Windows 使用 cmd /c
-            base_command = f"cd {shlex.quote(dist_dir)}"
+            # 获取目标目录所在的卷
+            drive = _get_drive_letter(dist_dir)
+
+            if drive:
+                # 如果目标目录在不同卷，需要先切换到该卷
+                base_command = rf"{drive} && cd {dist_dir}"
+            else:
+                base_command = rf"cd {dist_dir}"
+
             if env_vars:
                 env_exports = " && ".join(
                     [f"set {k}={shlex.quote(str(v))}" for k, v in env_vars.items()]
@@ -115,10 +139,16 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
             """
 
     if config["MOCK"]:
-        return _execute_script_subprocess(
+        execute_result = _execute_script_subprocess(
             f"python {config['SIM_CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars
         )
+    elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
+        execute_result = _execute_script_subprocess(
+            f"{config['EXECUTE_PATH']} -p '{prompt}'", env_vars=env_vars
+        )
     else:
-        return _execute_script_subprocess(
+        execute_result = _execute_script_subprocess(
             f"{config['CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars
         )
+
+    return execute_result

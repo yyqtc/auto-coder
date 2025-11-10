@@ -19,6 +19,22 @@ config = json.load(open("config.json", "r", encoding="utf-8"))
 project_path = os.path.abspath(os.path.dirname(__file__))
 
 
+def _get_drive_letter(path):
+    """
+    获取路径所在的卷（驱动器字母）
+    
+    Args:
+        path: 文件或目录路径
+        
+    Returns:
+        在Windows上返回驱动器字母（如 'C:'），在Linux/Mac上返回空字符串
+    """
+    if platform.system() == "Windows":
+        drive, _ = os.path.splitdrive(os.path.abspath(path))
+        return drive
+    return ""
+
+
 def _revert_docx_to_md(doc: Document, md_project_name: str) -> str:
     image_map = {}
     image_count = 0
@@ -160,7 +176,15 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         
         if is_windows:
             # Windows 使用 cmd /c
-            base_command = f"cd {shlex.quote(todo_dir)}"
+            # 获取目标目录所在的卷
+            drive = _get_drive_letter(todo_dir)
+
+            if drive:
+                # 如果目标目录在不同卷，需要先切换到该卷
+                base_command = rf"{drive} && cd {todo_dir}"
+            else:
+                base_command = rf"cd {todo_dir}"
+
             full_command = ""
             if env_vars:
                 env_exports = " && ".join(
@@ -245,11 +269,17 @@ def analyze_what_to_do():
     prompt += "\n\n注意！分析中你必须并根据审核员意见和开发日志调整分析结果。\n你不允许对所在目录的父目录进行写入操作！"
 
     if config["MOCK"]:
-        return _execute_script_subprocess(
+        execute_result = _execute_script_subprocess(
             f"python {config['SIM_CURSOR_PATH']} -p --force --output-format text '{prompt}'",
-            env_vars=env_vars,
+            env_vars=env_vars
+        )
+    elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
+        execute_result = _execute_script_subprocess(
+            f"{config['EXECUTE_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars
         )
     else:
-        return _execute_script_subprocess(
+        execute_result = _execute_script_subprocess(
             f"{config['CURSOR_PATH']} -p --force --output-format text '{prompt}'", env_vars=env_vars
         )
+
+    return execute_result

@@ -1,6 +1,7 @@
 from custom_type import ActionReview
 
 import os
+import stat
 import shutil
 import json
 import logging
@@ -14,6 +15,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+def remove_readonly(func, path, _):
+    """用于处理只读文件的错误回调函数"""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 async def counter_node(state: ActionReview) -> ActionReview:
     count = 0
@@ -40,7 +46,7 @@ async def counter_node(state: ActionReview) -> ActionReview:
     if os.path.exists(dist_dir):
         history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
         if os.path.exists(history_dir):
-            shutil.rmtree(history_dir)
+            shutil.rmtree(history_dir, onexc=remove_readonly)
 
         shutil.copytree(dist_dir, history_dir, dirs_exist_ok=True)
 

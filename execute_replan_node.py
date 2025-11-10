@@ -7,6 +7,7 @@ from constants import (
 )
 
 import os
+import stat
 import json
 import shutil
 import logging
@@ -87,6 +88,10 @@ _prompt = ChatPromptTemplate.from_messages(
 
 agent = _prompt | _model.with_structured_output(Act)
 
+def remove_readonly(func, path, _):
+    """用于处理只读文件的错误回调函数"""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     logger.info("正在根据当前开发结果调整计划...")
@@ -182,7 +187,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     elif isinstance(result.action, Plan):
         history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
         if os.path.exists(history_dir):
-            shutil.rmtree(history_dir)
+            shutil.rmtree(history_dir, onexc=remove_readonly)
         dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
         shutil.copytree(dist_dir, history_dir, dirs_exist_ok=True)
 

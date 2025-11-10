@@ -2,6 +2,7 @@ from langchain.tools import tool
 from typing import List
 
 import os
+import stat
 import json
 import shlex
 import subprocess
@@ -18,6 +19,27 @@ logger = logging.getLogger(__name__)
 project_path = os.path.abspath(os.path.dirname(__file__))
 
 config = json.load(open(os.path.join("./config.json"), "r", encoding="utf-8"))
+
+def remove_readonly(func, path, _):
+    """用于处理只读文件的错误回调函数"""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
+def _get_drive_letter(path):
+    """
+    获取路径所在的卷（驱动器字母）
+    
+    Args:
+        path: 文件或目录路径
+        
+    Returns:
+        在Windows上返回驱动器字母（如 'C:'），在Linux/Mac上返回空字符串
+    """
+    if platform.system() == "Windows":
+        drive, _ = os.path.splitdrive(os.path.abspath(path))
+        return drive
+    return ""
 
 
 def _execute_script_subprocess(script_command, env_vars=None) -> str:
@@ -37,7 +59,15 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
         
         if is_windows:
             # Windows 使用 cmd /c
-            base_command = f"cd {shlex.quote(dist_dir)}"
+            # 获取目标目录所在的卷
+            drive = _get_drive_letter(dist_dir)
+            
+            if drive:
+                # 如果目标目录在不同卷，需要先切换到该卷
+                base_command = rf"{drive} && cd {dist_dir}"
+            else:
+                base_command = rf"cd {dist_dir}"
+                
             full_command = ""
             if env_vars:
                 env_exports = " && ".join(
@@ -111,7 +141,7 @@ def rm(path: str) -> str:
     if os.path.isfile(file_or_dir_path):
         os.remove(file_or_dir_path)
     elif os.path.isdir(file_or_dir_path):
-        shutil.rmtree(file_or_dir_path)
+        shutil.rmtree(file_or_dir_path, onexc=remove_readonly)
 
     return f"删除文件成功"
 
@@ -140,13 +170,23 @@ def code_professional(prompt: str) -> str:
     2. 你编写的代码中必须抑制除了打印错误信息和结果信息以外的其他打印信息！
     """
 
+    if " " in config["PROJECT_NAME"]:
+        project_name = f"\"{config['PROJECT_NAME']}\""
+    else:
+        project_name = config['PROJECT_NAME']
+
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
             f"python {config['SIM_CURSOR_PATH']} -p --force '{prompt}'", env_vars=env_vars
         )
+    elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
+        execute_result = _execute_script_subprocess(
+            f"{config['EXECUTE_PATH']} -p --force '@../../todo/{project_name} {prompt}'",
+            env_vars=env_vars,
+        )
     else:
         execute_result = _execute_script_subprocess(
-            f"{config['CURSOR_PATH']} -p --force '@../../todo/{config['PROJECT_NAME']} {prompt}'",
+            f"{config['CURSOR_PATH']} -p --force '@../../todo/{project_name} {prompt}'",
             env_vars=env_vars,
         )
 
