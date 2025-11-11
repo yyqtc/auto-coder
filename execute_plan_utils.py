@@ -294,6 +294,7 @@ def analyze_what_to_do():
             f'{config["EXECUTE_PATH"]} -p --force --output-format text --prompt-file {temp_file_path}', env_vars=env_vars
         )
     else:
+        prompt = shlex.quote(prompt)
         execute_result = _execute_script_subprocess(
             f'{config["CURSOR_PATH"]} -p --force --output-format text "{prompt}"', env_vars=env_vars
         )

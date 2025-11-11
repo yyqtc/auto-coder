@@ -201,6 +201,7 @@ def code_professional(prompt: str) -> str:
             env_vars=env_vars,
         )
     else:
+        prompt = shlex.quote(prompt)
         execute_result = _execute_script_subprocess(
             f'{config["CURSOR_PATH"]} -p --force "@../../todo/{project_name} {prompt}"',
             env_vars=env_vars,

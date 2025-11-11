@@ -160,6 +160,7 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
             f'{config["EXECUTE_PATH"]} -p --force --prompt-file {temp_file_path}', env_vars=env_vars
         )
     else:
+        prompt = shlex.quote(prompt)
         execute_result = _execute_script_subprocess(
             f'{config["CURSOR_PATH"]} -p "{prompt}"', env_vars=env_vars
         )
