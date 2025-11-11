@@ -187,7 +187,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     elif isinstance(result.action, Plan):
         history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
         if os.path.exists(history_dir):
-            shutil.rmtree(history_dir, onexc=remove_readonly)
+            shutil.rmtree(history_dir, onerror=remove_readonly)
         dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
         shutil.copytree(dist_dir, history_dir, dirs_exist_ok=True)
 
