@@ -249,28 +249,17 @@ def analyze_what_to_do():
     opinion = ""
     opinion_file = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
     if os.path.exists(opinion_file):
-        with open(opinion_file, "r", encoding="utf-8") as f:
-            opinion = f.read()
-
-    if len(opinion) > 0:
         prompt += f"""
 
-        审核员意见如下：
-        {opinion}
+        @{opinion_file} 审核员意见
         """
 
     development_log = ""
     development_log_file = os.path.join(".", "dist", config['PROJECT_NAME'], "development_log.md")
     if os.path.exists(development_log_file):
-        with open(development_log_file, "r", encoding="utf-8") as f:
-            development_log = f.read()
-
-    if len(development_log) > 0:
         prompt += f"""
 
-        分析中你必须考虑开发日志，并根据开发日志调整分析结果。
-        开发日志如下：
-        {development_log}
+        @{development_log_file} 分析中你必须考虑开发日志，并根据开发日志调整分析结果。
         """
 
     prompt += "\n\n注意！1. 分析中你必须并根据审核员意见和开发日志调整分析结果。\n2. 你不允许对所在目录的父目录进行写入操作！\n"

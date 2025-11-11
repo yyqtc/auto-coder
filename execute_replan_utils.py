@@ -68,7 +68,6 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
             else:
                 full_command = f"{base_command} && {script_command}"
 
-
             result = subprocess.run(
                 ["cmd", "/c", full_command],
                 capture_output=True,
@@ -131,15 +130,9 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         opinion = ""
         opinion_file = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
         if os.path.exists(opinion_file):
-            with open(opinion_file, "r", encoding="utf-8") as f:
-                opinion = f.read()
-
-        if len(opinion) > 0:
             prompt += f"""
 
-            分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
-            审核员意见如下：
-            {opinion}
+            @{opinion_file} 分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
             """
 
     if config["MOCK"]:
@@ -160,7 +153,6 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
             f'{config["EXECUTE_PATH"]} -p --force --prompt-file {temp_file_path}', env_vars=env_vars
         )
     else:
-        prompt = shlex.quote(prompt)
         execute_result = _execute_script_subprocess(
             f'{config["CURSOR_PATH"]} -p "{prompt}"', env_vars=env_vars
         )
