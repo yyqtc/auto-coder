@@ -9,6 +9,7 @@ import subprocess
 import logging
 import platform
 import tempfile
+import tempfile
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,6 +69,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
                 base_command = rf"{drive} && cd {dist_dir}"
             else:
                 base_command = rf"cd {dist_dir}"
+
 
             full_command = ""
             if env_vars:
@@ -173,6 +175,8 @@ def code_professional(prompt: str) -> str:
 
     prompt = "不要等待任何提示！直接开始编写代码！\n\n" + prompt
 
+    prompt = "不要等待任何提示！直接开始编写代码！\n\n" + prompt
+
     if " " in config["PROJECT_NAME"]:
         project_name = f"\"{config['PROJECT_NAME']}\""
     else:
@@ -181,8 +185,21 @@ def code_professional(prompt: str) -> str:
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
             f'python {config["SIM_CURSOR_PATH"]} -p --force "{prompt}"', env_vars=env_vars
+            f'python {config["SIM_CURSOR_PATH"]} -p --force "{prompt}"', env_vars=env_vars
         )
     elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
+        with tempfile.NamedTemporaryFile(
+            mode='w', 
+            encoding='utf-8',
+            delete=False, 
+            suffix=".prompt",
+            dir="."
+        ) as temp_file:
+            temp_file.write(f"@../../todo/{project_name}\n{prompt}")
+            temp_file_path = os.path.abspath(os.path.join(".", temp_file.name))
+
+        logger.info(f"临时提示词文件路径: {temp_file_path}")
+
         with tempfile.NamedTemporaryFile(
             mode='w', 
             encoding='utf-8',
