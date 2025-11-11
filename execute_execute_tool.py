@@ -191,7 +191,7 @@ def code_professional(prompt: str) -> str:
             suffix=".prompt",
             dir="."
         ) as temp_file:
-            temp_file.write(f"@../../todo/{project_name}\n{prompt}")
+            temp_file.write(f"@../../todo/{project_name} \n{prompt}")
             temp_file_path = os.path.abspath(os.path.join(".", temp_file.name))
 
         logger.info(f"临时提示词文件路径: {temp_file_path}")
@@ -201,7 +201,6 @@ def code_professional(prompt: str) -> str:
             env_vars=env_vars,
         )
     else:
-        prompt = shlex.quote(prompt)
         execute_result = _execute_script_subprocess(
             f'{config["CURSOR_PATH"]} -p --force "@../../todo/{project_name} {prompt}"',
             env_vars=env_vars,

@@ -249,6 +249,7 @@ def analyze_what_to_do():
     opinion = ""
     opinion_file = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
     if os.path.exists(opinion_file):
+        opinion_file = os.path.abspath(opinion_file)
         prompt += f"""
 
         @{opinion_file} 审核员意见
@@ -257,6 +258,7 @@ def analyze_what_to_do():
     development_log = ""
     development_log_file = os.path.join(".", "dist", config['PROJECT_NAME'], "development_log.md")
     if os.path.exists(development_log_file):
+        development_log_file = os.path.abspath(development_log_file)
         prompt += f"""
 
         @{development_log_file} 分析中你必须考虑开发日志，并根据开发日志调整分析结果。

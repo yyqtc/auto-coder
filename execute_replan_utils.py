@@ -130,6 +130,7 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         opinion = ""
         opinion_file = os.path.join(".", "opinion", f"{config['PROJECT_NAME']}.md")
         if os.path.exists(opinion_file):
+            opinion_file = os.path.abspath(opinion_file)
             prompt += f"""
 
             @{opinion_file} 分析中你必须考虑审核员意见，并根据审核员意见调整分析结果。
