@@ -185,7 +185,6 @@ def code_professional(prompt: str) -> str:
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
             f'python {config["SIM_CURSOR_PATH"]} -p --force "{prompt}"', env_vars=env_vars
-            f'python {config["SIM_CURSOR_PATH"]} -p --force "{prompt}"', env_vars=env_vars
         )
     elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
         with tempfile.NamedTemporaryFile(
