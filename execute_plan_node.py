@@ -202,6 +202,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
 
         注意！
         计划请以JSON格式输出，应该包含steps字段，steps字段类型List[str]！
+        记住！这是给其他智能体的任务！不是给你的！你不需要真的按照需求执行！
     """
 
     todo_list = []
