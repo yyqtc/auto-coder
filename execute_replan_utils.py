@@ -4,6 +4,7 @@ import logging
 import shlex
 import subprocess
 import platform
+import tempfile
 
 logging.basicConfig(
     level=logging.INFO,
@@ -66,7 +67,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
                 full_command = f"{base_command} && {env_exports} && {script_command}"
             else:
                 full_command = f"{base_command} && {script_command}"
-            
+
             result = subprocess.run(
                 ["cmd", "/c", full_command],
                 capture_output=True,
@@ -110,6 +111,7 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
     env_vars = {"CURSOR_API_KEY": config["CURSOR_API_KEY"]}
 
     prompt = f"""
+        不要等待任何提示！直接开始分析！
         我们的开发团队已经完成了以下步骤并取得了一些成果：
         {past_steps_content}
 
@@ -119,9 +121,10 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         结合以上信息，检查现在项目中的代码，是否开发团队已经实现了他们描述的功能以及开发的代码是否存在问题。
 
         注意！
-        你不允许对所在目录的父目录进行写入操作！
-        重点回复存在的问题！不要遗漏任何问题！
-        请把你的分析结果写入到development_log.md文件中！
+        1. 你不允许对所在目录的父目录进行写入操作！
+        2. 重点回复存在的问题！不要遗漏任何问题！
+        3. 请把你的分析结果写入到development_log.md文件中！
+        4. 记住！这是为了让其他智能体修改准备的！你不需要真的按照整理出来的问题执行任何改进计划！你只需要告诉其他智能体需要修改什么！
     """
     if count > 0:
         opinion = ""
@@ -140,15 +143,24 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
 
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
-            f"python {config['SIM_CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars
+            f'python {config["SIM_CURSOR_PATH"]} -p "{prompt}"', env_vars=env_vars
         )
     elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
+        with tempfile.NamedTemporaryFile(
+            mode='w', 
+            encoding='utf-8',
+            delete=False, 
+            suffix=".prompt",
+            dir="."
+        ) as temp_file:
+            temp_file.write(prompt)
+            temp_file_path = os.path.abspath(os.path.join(".", temp_file.name))
         execute_result = _execute_script_subprocess(
-            f"{config['EXECUTE_PATH']} -p '{prompt}'", env_vars=env_vars
+            f'{config["EXECUTE_PATH"]} -p --force --prompt-file {temp_file_path}', env_vars=env_vars
         )
     else:
         execute_result = _execute_script_subprocess(
-            f"{config['CURSOR_PATH']} -p '{prompt}'", env_vars=env_vars
+            f'{config["CURSOR_PATH"]} -p "{prompt}"', env_vars=env_vars
         )
 
     return execute_result
