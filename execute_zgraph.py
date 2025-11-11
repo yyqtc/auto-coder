@@ -94,7 +94,7 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
     except Exception as e:
         logger.error(f"执行计划失败: {e}")
         dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
-        shutil.rmtree(dist_dir, onexc=remove_readonly)
+        shutil.rmtree(dist_dir, onerror=remove_readonly)
         history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
         if os.path.exists(history_dir):
             shutil.copytree(history_dir, dist_dir)

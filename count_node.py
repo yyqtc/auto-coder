@@ -46,7 +46,7 @@ async def counter_node(state: ActionReview) -> ActionReview:
     if os.path.exists(dist_dir):
         history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
         if os.path.exists(history_dir):
-            shutil.rmtree(history_dir, onexc=remove_readonly)
+            shutil.rmtree(history_dir, onerror=remove_readonly)
 
         shutil.copytree(dist_dir, history_dir, dirs_exist_ok=True)
 

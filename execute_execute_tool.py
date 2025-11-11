@@ -9,7 +9,6 @@ import subprocess
 import logging
 import platform
 import tempfile
-import tempfile
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,7 +21,7 @@ project_path = os.path.abspath(os.path.dirname(__file__))
 
 config = json.load(open(os.path.join("./config.json"), "r", encoding="utf-8"))
 
-def remove_readonly(func, path, _):
+def remove_readonly(func, path, exc_info):
     """用于处理只读文件的错误回调函数"""
     os.chmod(path, stat.S_IWRITE)
     func(path)
@@ -144,7 +143,7 @@ def rm(path: str) -> str:
     if os.path.isfile(file_or_dir_path):
         os.remove(file_or_dir_path)
     elif os.path.isdir(file_or_dir_path):
-        shutil.rmtree(file_or_dir_path, onexc=remove_readonly)
+        shutil.rmtree(file_or_dir_path, onerror=remove_readonly)
 
     return f"删除文件成功"
 
@@ -175,8 +174,6 @@ def code_professional(prompt: str) -> str:
 
     prompt = "不要等待任何提示！直接开始编写代码！\n\n" + prompt
 
-    prompt = "不要等待任何提示！直接开始编写代码！\n\n" + prompt
-
     if " " in config["PROJECT_NAME"]:
         project_name = f"\"{config['PROJECT_NAME']}\""
     else:
@@ -187,18 +184,6 @@ def code_professional(prompt: str) -> str:
             f'python {config["SIM_CURSOR_PATH"]} -p --force "{prompt}"', env_vars=env_vars
         )
     elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
-        with tempfile.NamedTemporaryFile(
-            mode='w', 
-            encoding='utf-8',
-            delete=False, 
-            suffix=".prompt",
-            dir="."
-        ) as temp_file:
-            temp_file.write(f"@../../todo/{project_name}\n{prompt}")
-            temp_file_path = os.path.abspath(os.path.join(".", temp_file.name))
-
-        logger.info(f"临时提示词文件路径: {temp_file_path}")
-
         with tempfile.NamedTemporaryFile(
             mode='w', 
             encoding='utf-8',

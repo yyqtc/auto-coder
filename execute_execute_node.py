@@ -46,9 +46,9 @@ def _init_agent():
 
 
 async def execute_node(state: PlanExecute) -> PlanExecute:
-    count = 0
+    # 验证输入格式（虽然count目前未使用，但保留验证逻辑）
     try:
-        count = int(state["input"].split("：")[1])
+        _ = int(state["input"].split("：")[1])
     except (IndexError, ValueError) as e:
         logger.info(f"解析input失败: {state.get('input', '')}, 错误: {e}")
         return {"response": "输入格式错误，无法解析开发轮数"}
