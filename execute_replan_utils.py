@@ -151,7 +151,6 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
             f'python {config["SIM_CURSOR_PATH"]} -p "{prompt}"', env_vars=env_vars
-            f'python {config["SIM_CURSOR_PATH"]} -p "{prompt}"', env_vars=env_vars
         )
     elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
         with tempfile.NamedTemporaryFile(
