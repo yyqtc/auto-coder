@@ -132,6 +132,9 @@ def read_development_log() -> str:
 
             compressed_development_log += part + "\n"
 
+    with open(development_log_path, "w", encoding="utf-8") as f:
+        f.write(compressed_development_log)
+
     return compressed_development_log
 
 
