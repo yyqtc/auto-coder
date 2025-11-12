@@ -7,7 +7,7 @@ name = "auto-coder"
 version = "0.1.0"
 description = "An intelligent code generation system based on LangGraph and LangChain with multi-agent collaboration"
 readme = "README.md"
-requires-python = ">=3.12.9"
+requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
     {name = "Yuqiang Yan"}

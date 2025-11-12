@@ -8,7 +8,7 @@
 
 如果您发现了 bug 或有功能建议，请：
 
-1. 检查 [Issues](https://github.com/your-username/auto-coder/issues) 中是否已有相关问题
+1. 检查 [Issues](https://github.com/yyqtc/auto-coder/issues) 中是否已有相关问题
 2. 如果没有，请创建新的 Issue，包括：
    - 清晰的问题描述
    - 复现步骤

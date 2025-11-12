@@ -17,7 +17,7 @@ setup(
     description="An intelligent code generation system based on LangGraph and LangChain",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-username/auto-coder",
+    url="https://github.com/yyqtc/auto-coder",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

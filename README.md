@@ -106,12 +106,14 @@ cp config.default.json config.json
     "SIM_CURSOR_PATH": "/path-to-sim_sdk.py",
     "MOCK": false,
     "CURSOR_PATH": "/root/.local/bin/cursor-agent",
+    "EXECUTE_PATH": "execute-agent.bat",
     "PROJECT_NAME": "your-project-name",
     "QWEN_API_KEY": "your-qwen-api-key",
     "QWEN_API_BASE": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     "DEEPSEEK_API_KEY": "your-deepseek-api-key",
     "DEEPSEEK_API_BASE": "https://api.deepseek.com",
     "SUMMARY_MAX_LENGTH": 2000,
+    "SUMMARY_THRESHOLD": 6000,
     "RECURSION_LIMIT": 100
 }
 ```
@@ -122,12 +124,14 @@ cp config.default.json config.json
 - `SIM_CURSOR_PATH`: 模拟 Cursor SDK 的路径（MOCK 模式使用，如 `./sim_sdk/sim_sdk.py`）
 - `MOCK`: 是否使用模拟模式（`true`/`false`，默认 `false`）
 - `CURSOR_PATH`: Cursor Agent CLI 路径（非 MOCK 模式使用，如 `/root/.local/bin/cursor-agent`）
+- `EXECUTE_PATH`: 执行路径（如 `execute-agent.bat`）
 - `PROJECT_NAME`: 项目名称（必需，必须与需求文档目录下的项目文件夹名称一致）
 - `QWEN_API_KEY`: 通义千问 API 密钥（必需）
 - `QWEN_API_BASE`: 通义千问 API 基础地址（默认：`https://dashscope.aliyuncs.com/compatible-mode/v1`）
 - `DEEPSEEK_API_KEY`: DeepSeek API 密钥（必需）
 - `DEEPSEEK_API_BASE`: DeepSeek API 基础地址（默认：`https://api.deepseek.com`）
 - `SUMMARY_MAX_LENGTH`: 总结内容的最大 token 长度（默认：2000，用于压缩上下文）
+- `SUMMARY_THRESHOLD`: 总结阈值（默认：6000，超过此长度时触发压缩）
 - `RECURSION_LIMIT`: 工作流递归限制次数（默认：100，防止无限循环）
 
 ## 📖 使用方法
@@ -196,7 +200,7 @@ auto-coder/
 │
 ├── execute_zgraph.py          # 执行工作流图，定义执行子图
 ├── execute_plan_node.py       # 计划节点，分析需求并生成执行计划
-├── execute_plan_utils.py       # 计划工具函数（文档转换、需求分析）
+├── execute_plan_utils.py      # 计划工具函数（文档转换、需求分析）
 ├── execute_execute_node.py    # 执行节点，执行计划任务
 ├── execute_execute_tool.py    # 执行工具（代码专家、文件操作等）
 ├── execute_replan_node.py     # 重新规划节点，动态调整计划
@@ -209,11 +213,29 @@ auto-coder/
 ├── sim_sdk/                   # 模拟 Cursor SDK（MOCK 模式使用）
 │   └── sim_sdk.py
 │
+├── examples/                  # 使用示例
+│   └── README.md              # 示例说明文档
+│
 ├── requirements.txt           # Python 依赖列表
 ├── setup.py                   # 项目安装配置
 ├── pyproject.toml             # 项目元数据配置
-└── .spanignore                # 需求文档分析时的忽略文件配置
+├── LICENSE                    # MIT 许可证
+├── CONTRIBUTING.md            # 贡献指南
+├── CHANGELOG.md               # 更新日志
+└── README.md                  # 项目说明文档（本文件）
 ```
+
+**注意**：以下目录和文件在 `.gitignore` 中，不会出现在版本控制中：
+- `config.json` - 用户配置文件（包含 API 密钥）
+- `experiment/` - 实验目录
+- `history/` - 历史备份目录
+- `opinion/` - 审核意见目录
+- `todo/` - 需求文档目录
+- `dist/` - 分发目录
+- `__pycache__/` - Python 缓存目录
+- `*.pyc`, `*.pyo`, `*.pyd` - Python 编译文件
+- `*.log` - 日志文件
+- 其他构建和临时文件
 
 ## 🔧 核心功能详解
 
@@ -267,7 +289,7 @@ auto-coder/
 
 1. **API 密钥安全**：`config.json` 已配置在 `.gitignore` 中，不要将包含真实 API 密钥的配置文件提交到版本控制系统
 2. **递归限制**：合理设置 `RECURSION_LIMIT`，避免无限循环或提前终止。默认值为 100，可根据项目复杂度调整
-3. **Token 消耗**：大量 LLM 调用会产生成本，注意监控使用量。系统已实现上下文压缩功能（`SUMMARY_MAX_LENGTH`）来减少 token 消耗
+3. **Token 消耗**：大量 LLM 调用会产生成本，注意监控使用量。系统已实现上下文压缩功能（`SUMMARY_MAX_LENGTH` 和 `SUMMARY_THRESHOLD`）来减少 token 消耗
 4. **文件权限**：确保系统有足够的文件系统操作权限，特别是对项目目录的读写权限
 5. **网络连接**：需要稳定的网络连接访问 LLM API（Qwen、DeepSeek）和 Cursor Agent
 6. **Windows 环境**：在 Windows 上使用需要 WSL 或 Git Bash 支持 bash 命令，因为工具执行使用 `subprocess.run(["bash", "-c", ...])`
@@ -323,7 +345,7 @@ auto-coder/
 
 示例：
 ```python
-tool
+@tool
 def my_new_tool(param: str) -> str:
     """工具描述"""
     # 实现逻辑
@@ -360,7 +382,7 @@ tools = [..., my_new_tool]  # 添加到工具列表
 
 ## 🤝 贡献
 
-欢迎提交 Issue 和 Pull Request！
+欢迎提交 Issue 和 Pull Request！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 📧 联系方式
 
@@ -369,4 +391,3 @@ tools = [..., my_new_tool]  # 添加到工具列表
 ---
 
 **注意**：本系统是一个实验性项目，在生产环境中使用前请充分测试。
-
