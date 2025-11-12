@@ -46,6 +46,7 @@ summary_prompt = ChatPromptTemplate.from_messages(
 
 summary_pro = summary_prompt | dp_model
 
+
 def remove_readonly(func, path, _):
     """用于处理只读文件的错误回调函数"""
     os.chmod(path, stat.S_IWRITE)
@@ -93,14 +94,14 @@ async def execute_zgraph(state: ActionReview) -> ActionReview:
 
     except Exception as e:
         logger.error(f"执行计划失败: {e}")
-        dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
+        dist_dir = os.path.join(".", "dist", config["PROJECT_NAME"])
         shutil.rmtree(dist_dir, onerror=remove_readonly)
-        history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
+        history_dir = os.path.join(".", "history", config["PROJECT_NAME"])
         if os.path.exists(history_dir):
             shutil.copytree(history_dir, dist_dir)
 
     finally:
-        development_log_path = os.path.join(".", "dist", config['PROJECT_NAME'], "development.log")
+        development_log_path = os.path.join(".", "dist", config["PROJECT_NAME"], "development.log")
         if os.path.exists(development_log_path):
             content = ""
             with open(development_log_path, "r", encoding="utf-8") as f:

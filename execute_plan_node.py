@@ -80,7 +80,7 @@ def check_and_convert_file():
 
     skip_dirs = [dir.strip() for dir in skip_dirs if len(dir.strip()) > 0]
 
-    todo_dir = Path(os.path.join(".", "todo", config['PROJECT_NAME']))
+    todo_dir = Path(os.path.join(".", "todo", config["PROJECT_NAME"]))
     warning_file = ""
     for file in todo_dir.glob("**/*"):
         if any(part in skip_dirs for part in file.parts):
@@ -94,20 +94,26 @@ def check_and_convert_file():
                     if not len(warning_file):
                         cnt = 0
                         while True:
-                            warning_path = os.path.join(".", "todo", config['PROJECT_NAME'], "warning.md")
+                            warning_path = os.path.join(
+                                ".", "todo", config["PROJECT_NAME"], "warning.md"
+                            )
                             if cnt == 0 and os.path.exists(warning_path):
                                 cnt += 1
                             else:
-                                warning_path = os.path.join(".", "todo", config['PROJECT_NAME'], f"warning_{cnt}.md")
+                                warning_path = os.path.join(
+                                    ".", "todo", config["PROJECT_NAME"], f"warning_{cnt}.md"
+                                )
                                 if os.path.exists(warning_path):
                                     cnt += 1
                                 else:
                                     break
 
                         warning_file = (
-                            os.path.join(".", "todo", config['PROJECT_NAME'], "warning.md")
+                            os.path.join(".", "todo", config["PROJECT_NAME"], "warning.md")
                             if cnt == 0
-                            else os.path.join(".", "todo", config['PROJECT_NAME'], f"warning_{cnt}.md")
+                            else os.path.join(
+                                ".", "todo", config["PROJECT_NAME"], f"warning_{cnt}.md"
+                            )
                         )
 
                     with open(warning_file, "a+", encoding="utf-8") as f:
@@ -125,20 +131,26 @@ def check_and_convert_file():
                         cnt = 0
 
                         while True:
-                            warning_path = os.path.join(".", "todo", config['PROJECT_NAME'], "warning.md")
+                            warning_path = os.path.join(
+                                ".", "todo", config["PROJECT_NAME"], "warning.md"
+                            )
                             if cnt == 0 and os.path.exists(warning_path):
                                 cnt += 1
                             else:
-                                warning_path = os.path.join(".", "todo", config['PROJECT_NAME'], f"warning_{cnt}.md")
+                                warning_path = os.path.join(
+                                    ".", "todo", config["PROJECT_NAME"], f"warning_{cnt}.md"
+                                )
                                 if os.path.exists(warning_path):
                                     cnt += 1
                                 else:
                                     break
 
                         warning_file = (
-                            os.path.join(".", "todo", config['PROJECT_NAME'], "warning.md")
+                            os.path.join(".", "todo", config["PROJECT_NAME"], "warning.md")
                             if cnt == 0
-                            else os.path.join(".", "todo", config['PROJECT_NAME'], f"warning_{cnt}.md")
+                            else os.path.join(
+                                ".", "todo", config["PROJECT_NAME"], f"warning_{cnt}.md"
+                            )
                         )
 
                     with open(warning_file, "a+", encoding="utf-8") as f:
@@ -148,7 +160,7 @@ def check_and_convert_file():
 
 
 async def execute_plan_node(state: PlanExecute) -> PlanExecute:
-    dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
+    dist_dir = os.path.join(".", "dist", config["PROJECT_NAME"])
     os.makedirs(dist_dir, exist_ok=True)
 
     try:
@@ -157,13 +169,13 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
         logger.info(f"解析input失败: {state.get('input', '')}, 错误: {e}")
         return {"response": "输入格式错误，无法解析开发轮数"}
 
-    todo_md_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo.md")
+    todo_md_path = os.path.join(".", "todo", config["PROJECT_NAME"], "todo.md")
     if os.path.exists(todo_md_path):
         user_input = input(f"todo.md文件已存在，是否删除？(y/n): ")
         if user_input == "y":
             os.remove(todo_md_path)
 
-    todo_list_md_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo_list.md")
+    todo_list_md_path = os.path.join(".", "todo", config["PROJECT_NAME"], "todo_list.md")
     if count == 0 and os.path.exists(todo_list_md_path):
         user_input = input(f"todo_list.md文件已存在，是否删除？(y/n): ")
         if user_input == "y":
@@ -192,7 +204,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
     if result == "执行失败！" or result == "分析失败！":
         return {"response": REQUIREMENT_FAIL_MESSAGE}
 
-    todo_md_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo.md")
+    todo_md_path = os.path.join(".", "todo", config["PROJECT_NAME"], "todo.md")
     with open(todo_md_path, "r", encoding="utf-8") as f:
         todo_content = f.read()
 
@@ -214,7 +226,7 @@ async def execute_plan_node(state: PlanExecute) -> PlanExecute:
                 f"结合对原计划的改进意见，改进意见如下：\n{improve_opinion}\n\n{user_prompt}"
             )
 
-        todo_list_md_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo_list.md")
+        todo_list_md_path = os.path.join(".", "todo", config["PROJECT_NAME"], "todo_list.md")
         if os.path.exists(todo_list_md_path):
             with open(todo_list_md_path, "r", encoding="utf-8") as f:
                 user_prompt = (

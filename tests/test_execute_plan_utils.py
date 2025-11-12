@@ -1,6 +1,7 @@
 """
 测试 execute_plan_utils.py 模块
 """
+
 import pytest
 import os
 import tempfile
@@ -14,10 +15,12 @@ class TestGetDriveLetter:
 
     def test_get_drive_letter_windows(self):
         """测试 Windows 系统获取驱动器字母"""
-        with patch("execute_plan_utils.platform.system", return_value="Windows"), \
-             patch("os.path.splitdrive", return_value=("C:", "\\path\\to\\file")):
-            
+        with patch("execute_plan_utils.platform.system", return_value="Windows"), patch(
+            "os.path.splitdrive", return_value=("C:", "\\path\\to\\file")
+        ):
+
             from execute_plan_utils import _get_drive_letter
+
             result = _get_drive_letter("C:\\path\\to\\file")
             assert result == "C:"
 
@@ -25,6 +28,7 @@ class TestGetDriveLetter:
         """测试 Linux 系统返回空字符串"""
         with patch("execute_plan_utils.platform.system", return_value="Linux"):
             from execute_plan_utils import _get_drive_letter
+
             result = _get_drive_letter("/path/to/file")
             assert result == ""
 
@@ -35,7 +39,7 @@ class TestConvertDocxToMarkdown:
     def test_convert_docx_file_not_exists(self):
         """测试文件不存在的情况"""
         from execute_plan_utils import convert_docx_to_markdown
-        
+
         result = convert_docx_to_markdown("/nonexistent/file.docx")
         assert result == "文件不存在"
 
@@ -43,9 +47,10 @@ class TestConvertDocxToMarkdown:
         """测试非 docx 文件"""
         with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
             temp_path = f.name
-        
+
         try:
             from execute_plan_utils import convert_docx_to_markdown
+
             result = convert_docx_to_markdown(temp_path)
             assert result == "文件不是docx文件"
         finally:
@@ -64,7 +69,7 @@ class TestConvertPdfToMarkdown:
     def test_convert_pdf_file_not_exists(self):
         """测试 PDF 文件不存在的情况"""
         from execute_plan_utils import convert_pdf_to_markdown
-        
+
         result = convert_pdf_to_markdown("/nonexistent/file.pdf")
         assert result == "pdf文件不存在"
 
@@ -72,9 +77,10 @@ class TestConvertPdfToMarkdown:
         """测试非 PDF 文件"""
         with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
             temp_path = f.name
-        
+
         try:
             from execute_plan_utils import convert_pdf_to_markdown
+
             result = convert_pdf_to_markdown(temp_path)
             assert result == "文件不是pdf文件"
         finally:
@@ -94,49 +100,54 @@ class TestExecuteScriptSubprocess:
 
     def test_execute_script_windows_success(self, mock_config):
         """测试 Windows 系统成功执行"""
-        with patch("execute_plan_utils.platform.system", return_value="Windows"), \
-             patch("execute_plan_utils.config", mock_config), \
-             patch("execute_plan_utils.os.path.exists", return_value=True), \
-             patch("subprocess.run") as mock_run:
-            
+        with patch("execute_plan_utils.platform.system", return_value="Windows"), patch(
+            "execute_plan_utils.config", mock_config
+        ), patch("execute_plan_utils.os.path.exists", return_value=True), patch(
+            "subprocess.run"
+        ) as mock_run:
+
             mock_result = MagicMock()
             mock_result.stdout = "执行成功"
             mock_result.returncode = 0
             mock_run.return_value = mock_result
-            
+
             from execute_plan_utils import _execute_script_subprocess
+
             result = _execute_script_subprocess("echo test")
-            
+
             assert "执行成功" in result or result == "执行成功"
 
     def test_execute_script_linux_success(self, mock_config):
         """测试 Linux 系统成功执行"""
-        with patch("execute_plan_utils.platform.system", return_value="Linux"), \
-             patch("execute_plan_utils.config", mock_config), \
-             patch("subprocess.run") as mock_run:
-            
+        with patch("execute_plan_utils.platform.system", return_value="Linux"), patch(
+            "execute_plan_utils.config", mock_config
+        ), patch("subprocess.run") as mock_run:
+
             mock_result = MagicMock()
             mock_result.stdout = "执行成功"
             mock_result.returncode = 0
             mock_run.return_value = mock_result
-            
+
             from execute_plan_utils import _execute_script_subprocess
+
             result = _execute_script_subprocess("echo test")
-            
+
             assert "执行成功" in result or result == "执行成功"
 
     def test_execute_script_failure(self, mock_config):
         """测试执行失败的情况"""
-        with patch("execute_plan_utils.platform.system", return_value="Linux"), \
-             patch("execute_plan_utils.config", mock_config), \
-             patch("subprocess.run") as mock_run:
-            
+        with patch("execute_plan_utils.platform.system", return_value="Linux"), patch(
+            "execute_plan_utils.config", mock_config
+        ), patch("subprocess.run") as mock_run:
+
             from subprocess import CalledProcessError
+
             mock_run.side_effect = CalledProcessError(1, "cmd", stderr="错误信息")
-            
+
             from execute_plan_utils import _execute_script_subprocess
+
             result = _execute_script_subprocess("invalid command")
-            
+
             assert result == "执行失败！"
 
 
@@ -154,33 +165,35 @@ class TestAnalyzeWhatToDo:
 
     def test_analyze_what_to_do_mock_mode(self, mock_config):
         """测试 MOCK 模式下的分析"""
-        with patch("execute_plan_utils.config", mock_config), \
-             patch("execute_plan_utils._execute_script_subprocess") as mock_execute, \
-             patch("os.path.exists", return_value=False):
-            
+        with patch("execute_plan_utils.config", mock_config), patch(
+            "execute_plan_utils._execute_script_subprocess"
+        ) as mock_execute, patch("os.path.exists", return_value=False):
+
             mock_execute.return_value = "分析完成"
-            
+
             from execute_plan_utils import analyze_what_to_do
+
             result = analyze_what_to_do()
-            
+
             assert mock_execute.called
             assert "分析完成" in result or result == "分析完成"
 
     def test_analyze_what_to_do_with_opinion(self, mock_config):
         """测试包含审核意见的分析"""
-        with patch("execute_plan_utils.config", mock_config), \
-             patch("execute_plan_utils._execute_script_subprocess") as mock_execute, \
-             patch("os.path.exists") as mock_exists, \
-             patch("os.path.abspath", return_value="/path/to/opinion.md"):
-            
+        with patch("execute_plan_utils.config", mock_config), patch(
+            "execute_plan_utils._execute_script_subprocess"
+        ) as mock_execute, patch("os.path.exists") as mock_exists, patch(
+            "os.path.abspath", return_value="/path/to/opinion.md"
+        ):
+
             def exists_side_effect(path):
                 return "opinion" in path
-            
+
             mock_exists.side_effect = exists_side_effect
             mock_execute.return_value = "分析完成"
-            
-            from execute_plan_utils import analyze_what_to_do
-            result = analyze_what_to_do()
-            
-            assert mock_execute.called
 
+            from execute_plan_utils import analyze_what_to_do
+
+            result = analyze_what_to_do()
+
+            assert mock_execute.called

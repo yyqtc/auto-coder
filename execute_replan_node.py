@@ -88,10 +88,12 @@ _prompt = ChatPromptTemplate.from_messages(
 
 agent = _prompt | _model.with_structured_output(Act)
 
+
 def remove_readonly(func, path, _):
     """用于处理只读文件的错误回调函数"""
     os.chmod(path, stat.S_IWRITE)
     func(path)
+
 
 async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     logger.info("正在根据当前开发结果调整计划...")
@@ -102,7 +104,7 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     async def read_todo_content():
         todo = ""
         try:
-            todo_file_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo.md")
+            todo_file_path = os.path.join(".", "todo", config["PROJECT_NAME"], "todo.md")
             with open(todo_file_path, "r", encoding="utf-8") as f:
                 todo = f.read()
                 if len(todo) > config["SUMMARY_THRESHOLD"]:
@@ -185,10 +187,10 @@ async def execute_replan_node(state: PlanExecute) -> PlanExecute:
     if isinstance(result.action, Response):
         return {"response": result.action.response}
     elif isinstance(result.action, Plan):
-        history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
+        history_dir = os.path.join(".", "history", config["PROJECT_NAME"])
         if os.path.exists(history_dir):
             shutil.rmtree(history_dir, onerror=remove_readonly)
-        dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
+        dist_dir = os.path.join(".", "dist", config["PROJECT_NAME"])
         shutil.copytree(dist_dir, history_dir, dirs_exist_ok=True)
 
         return {"plan": result.action.steps, "past_steps": past_steps}
