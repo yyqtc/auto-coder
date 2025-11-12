@@ -124,7 +124,7 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         1. 你不允许对所在目录的父目录进行写入操作！
         2. 重点回复存在的问题！不要遗漏任何问题！
         3. 请把你的分析结果写入到development_log.md文件中！
-        4. 如果你发现development_log.md字数超过{config["SUMMARY_THRESHOLD"]}个token，请适当总结development_log.md文件中的内容，并更新development_log.md文件！
+        4. 如果你发现development_log.md字数超过{config["SUMMARY_THRESHOLD"]}个token，请适当总结development_log.md文件中的内容，并用总结后的内容覆盖development_log.md文件中的内容！
         5. 记住！这是为了让其他智能体修改准备的！你不需要真的按照整理出来的问题执行任何改进计划！你只需要告诉其他智能体需要修改什么！
     """
     if count > 0:
