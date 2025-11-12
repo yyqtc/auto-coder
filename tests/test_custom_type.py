@@ -1,6 +1,7 @@
 """
 测试 custom_type.py 和 execute_custom_type.py 模块
 """
+
 import pytest
 from pydantic import ValidationError
 from custom_type import ActionReview, Action, Response, Act
@@ -117,4 +118,3 @@ class TestExecuteAct:
         response = Response(response="完成")
         act = ExecuteAct(action=response)
         assert isinstance(act.action, Response)
-

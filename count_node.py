@@ -21,6 +21,7 @@ def remove_readonly(func, path, _):
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
+
 async def counter_node(state: ActionReview) -> ActionReview:
     count = 0
     if "count" in state:
@@ -42,9 +43,9 @@ async def counter_node(state: ActionReview) -> ActionReview:
         if check_input == "pass":
             return {"response": "pass"}
 
-    dist_dir = os.path.join(".", "dist", config['PROJECT_NAME'])
+    dist_dir = os.path.join(".", "dist", config["PROJECT_NAME"])
     if os.path.exists(dist_dir):
-        history_dir = os.path.join(".", "history", config['PROJECT_NAME'])
+        history_dir = os.path.join(".", "history", config["PROJECT_NAME"])
         if os.path.exists(history_dir):
             shutil.rmtree(history_dir, onerror=remove_readonly)
 

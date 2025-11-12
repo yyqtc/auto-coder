@@ -1,6 +1,7 @@
 """
 Pytest 配置文件和共享 fixtures
 """
+
 import pytest
 import json
 import os
@@ -82,15 +83,14 @@ def mock_file_structure(temp_dir):
     """创建模拟的文件结构"""
     project_dir = os.path.join(temp_dir, "test-project")
     os.makedirs(project_dir, exist_ok=True)
-    
+
     # 创建子目录
     os.makedirs(os.path.join(project_dir, "src"), exist_ok=True)
     os.makedirs(os.path.join(project_dir, "tests"), exist_ok=True)
-    
+
     # 创建测试文件
     test_file = os.path.join(project_dir, "test.py")
     with open(test_file, "w", encoding="utf-8") as f:
         f.write("print('Hello, World!')")
-    
-    return project_dir
 
+    return project_dir

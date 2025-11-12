@@ -21,10 +21,10 @@ project_path = os.path.abspath(os.path.dirname(__file__))
 def _get_drive_letter(path):
     """
     获取路径所在的卷（驱动器字母）
-    
+
     Args:
         path: 文件或目录路径
-        
+
     Returns:
         在Windows上返回驱动器字母（如 'C:'），在Linux/Mac上返回空字符串
     """
@@ -45,10 +45,10 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
     try:
         # 检测操作系统
         is_windows = platform.system() == "Windows"
-        
+
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        dist_dir = os.path.join(project_path, "dist", config['PROJECT_NAME'])
-        
+        dist_dir = os.path.join(project_path, "dist", config["PROJECT_NAME"])
+
         if is_windows:
             # Windows 使用 cmd /c
             # 获取目标目录所在的卷
@@ -86,7 +86,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
                 full_command = f"{base_command} && {env_exports} && {script_command}"
             else:
                 full_command = f"{base_command} && {script_command}"
-            
+
             result = subprocess.run(
                 ["bash", "-c", full_command],
                 capture_output=True,
@@ -143,11 +143,7 @@ def analyze_what_to_do(count=0, past_steps_content="", plan=""):
         )
     elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
         with tempfile.NamedTemporaryFile(
-            mode='w', 
-            encoding='utf-8',
-            delete=False, 
-            suffix=".prompt",
-            dir="."
+            mode="w", encoding="utf-8", delete=False, suffix=".prompt", dir="."
         ) as temp_file:
             temp_file.write(prompt)
             temp_file_path = os.path.abspath(os.path.join(".", temp_file.name))

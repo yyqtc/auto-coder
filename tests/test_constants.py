@@ -1,6 +1,7 @@
 """
 测试 constants.py 模块
 """
+
 import pytest
 from constants import (
     CODE_EXTENSIONS,
@@ -72,4 +73,3 @@ class TestErrorMessages:
         for msg in messages:
             assert isinstance(msg, str)
             assert len(msg) > 0
-

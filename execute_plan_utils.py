@@ -23,10 +23,10 @@ project_path = os.path.abspath(os.path.dirname(__file__))
 def _get_drive_letter(path):
     """
     获取路径所在的卷（驱动器字母）
-    
+
     Args:
         path: 文件或目录路径
-        
+
     Returns:
         在Windows上返回驱动器字母（如 'C:'），在Linux/Mac上返回空字符串
     """
@@ -119,7 +119,7 @@ def convert_docx_to_markdown(docx_path: str) -> str:
 
     docx_name = os.path.basename(docx_path).split(".")[0]
     doc = Document(docx_path)
-    todo_docx_dir = os.path.join(".", "todo", config['PROJECT_NAME'], docx_name)
+    todo_docx_dir = os.path.join(".", "todo", config["PROJECT_NAME"], docx_name)
     os.makedirs(todo_docx_dir, exist_ok=True)
     os.makedirs(os.path.join(todo_docx_dir, "img"), exist_ok=True)
     todo_md_path = os.path.join(todo_docx_dir, "todo.md")
@@ -149,7 +149,7 @@ def convert_pdf_to_markdown(pdf_path: str) -> str:
                 content += page_content + "\n\n"
 
         pdf_name = os.path.basename(pdf_path).split(".")[0]
-        todo_pdf_dir = os.path.join(".", "todo", config['PROJECT_NAME'], pdf_name)
+        todo_pdf_dir = os.path.join(".", "todo", config["PROJECT_NAME"], pdf_name)
         if not os.path.exists(todo_pdf_dir):
             os.makedirs(todo_pdf_dir, exist_ok=True)
 
@@ -171,10 +171,10 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
     try:
         # 检测操作系统
         is_windows = platform.system() == "Windows"
-        
+
         # 如果需要在命令前设置环境变量，可以在命令中导出
-        todo_dir = os.path.join(project_path, "todo", config['PROJECT_NAME'])
-        
+        todo_dir = os.path.join(project_path, "todo", config["PROJECT_NAME"])
+
         if is_windows:
             # Windows 使用 cmd /c
             # 获取目标目录所在的卷
@@ -195,7 +195,6 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
             else:
                 full_command = f"{base_command} && {script_command}"
 
-
             result = subprocess.run(
                 ["cmd", "/c", full_command],
                 capture_output=True,
@@ -215,7 +214,7 @@ def _execute_script_subprocess(script_command, env_vars=None) -> str:
                 full_command = f"{base_command} && {env_exports} && {script_command}"
             else:
                 full_command = f"{base_command} && {script_command}"
-            
+
             result = subprocess.run(
                 ["bash", "-c", full_command],
                 capture_output=True,
@@ -256,7 +255,7 @@ def analyze_what_to_do():
         """
 
     development_log = ""
-    development_log_file = os.path.join(".", "dist", config['PROJECT_NAME'], "development_log.md")
+    development_log_file = os.path.join(".", "dist", config["PROJECT_NAME"], "development_log.md")
     if os.path.exists(development_log_file):
         development_log_file = os.path.abspath(development_log_file)
         prompt += f"""
@@ -269,20 +268,17 @@ def analyze_what_to_do():
     if config["MOCK"]:
         execute_result = _execute_script_subprocess(
             f'python {config["SIM_CURSOR_PATH"]} -p --force --output-format text "{prompt}"',
-            env_vars=env_vars
+            env_vars=env_vars,
         )
     elif platform.system() == "Windows" and "EXECUTE_PATH" in config:
         with tempfile.NamedTemporaryFile(
-            mode='w', 
-            encoding='utf-8',
-            delete=False, 
-            suffix=".prompt",
-            dir="."
+            mode="w", encoding="utf-8", delete=False, suffix=".prompt", dir="."
         ) as temp_file:
             temp_file.write(prompt)
             temp_file_path = os.path.abspath(os.path.join(".", temp_file.name))
         execute_result = _execute_script_subprocess(
-            f'{config["EXECUTE_PATH"]} -p --force --output-format text --prompt-file {temp_file_path}', env_vars=env_vars
+            f'{config["EXECUTE_PATH"]} -p --force --output-format text --prompt-file {temp_file_path}',
+            env_vars=env_vars,
         )
     else:
         prompt = shlex.quote(prompt)

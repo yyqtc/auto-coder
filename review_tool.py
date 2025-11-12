@@ -94,7 +94,7 @@ def read_todo_content() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_todo_content tool")
-    todo_file_path = os.path.join(".", "todo", config['PROJECT_NAME'], "todo.md")
+    todo_file_path = os.path.join(".", "todo", config["PROJECT_NAME"], "todo.md")
     if not os.path.exists(todo_file_path):
         return "文件不存在"
 
@@ -115,7 +115,7 @@ def read_development_log() -> str:
         如果文件存在，返回文件的内容
     """
     logger.info("use read_development_log tool")
-    development_log_path = os.path.join(".", "dist", config['PROJECT_NAME'], "development_log.md")
+    development_log_path = os.path.join(".", "dist", config["PROJECT_NAME"], "development_log.md")
     if not os.path.exists(development_log_path):
         return "文件不存在"
 
